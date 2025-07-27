@@ -1,5 +1,4 @@
 import * as fsp from 'fs/promises';
-import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import lockfile from 'proper-lockfile';
@@ -12,7 +11,6 @@ import {
   ListPromptsArgs,
   StorageError,
   NotFoundError,
-  ValidationError,
   createPromptSchema,
   updatePromptSchema,
   promptSchema,
@@ -84,6 +82,9 @@ export class FilePromptRepository implements PromptRepository {
       createdAt: now,
       updatedAt: now,
       version,
+      description: validated.description,
+      category: validated.category,
+      metadata: validated.metadata,
     };
 
     // Validate complete prompt
@@ -91,7 +92,7 @@ export class FilePromptRepository implements PromptRepository {
 
     return await this.withLock(this.indexPath, async () => {
       // Save prompt file
-      const promptPath = this.getPromptPath(id, version);
+      const promptPath = this.getPromptPath(id, 1);
       await this.atomicWriteFile(promptPath, JSON.stringify(prompt, null, 2));
       
       // Update index
@@ -113,7 +114,7 @@ export class FilePromptRepository implements PromptRepository {
     }
 
     try {
-      const promptPath = this.getPromptPath(id, version);
+      const promptPath = this.getPromptPath(id, version!);
       const content = await fsp.readFile(promptPath, 'utf-8');
       const prompt = JSON.parse(content);
       
@@ -203,6 +204,11 @@ export class FilePromptRepository implements PromptRepository {
       id, // Ensure ID doesn't change
       version: current.version + 1,
       updatedAt: new Date(),
+      name: validated.name ?? current.name,
+      content: validated.content ?? current.content,
+      description: validated.description,
+      category: validated.category,
+      metadata: validated.metadata,
     };
 
     // Validate complete prompt

@@ -6,7 +6,7 @@ export class SimpleTemplateEngine implements TemplateEngine {
    * Supports {{variable}} syntax
    */
   applyTemplate(content: string, variables: Record<string, string>): string {
-    return content.replace(/\{\{(\w+)\}\}/g, (match, variableName) => {
+    return content.replace(/\{\{(\w+)\}\}/g, (_match, variableName) => {
       if (variables[variableName] === undefined) {
         throw new Error(`Missing required variable: ${variableName}`);
       }

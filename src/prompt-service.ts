@@ -73,7 +73,7 @@ export class PromptService {
       throw new ValidationError(`Prompt '${prompt.name}' is not a template`);
     }
 
-    return this.templateEngine.applyTemplateWithValidation(
+    return this.templateEngine.applyTemplate(
       prompt.content,
       args.variables
     );
