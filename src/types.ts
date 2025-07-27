@@ -33,7 +33,7 @@ export const createPromptSchema = z.object({
   variables: z.array(z.string()).default([]),
   tags: z.array(z.string().min(1)).default([]),
   category: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Schema for a complete prompt (including server-generated fields)
@@ -44,13 +44,32 @@ export const promptSchema = createPromptSchema.extend({
   version: z.number().int().positive(),
 });
 
-// Schema for updating a prompt (all fields optional)
-export const updatePromptSchema = createPromptSchema.partial();
+// Schema for updating a prompt (all fields optional, no defaults)
+export const updatePromptSchema = z.object({
+  name: z.string()
+    .min(1, 'Name is required')
+    .max(100, 'Name cannot be longer than 100 characters')
+    .trim()
+    .optional(),
+  content: z.string()
+    .min(1, 'Content is required')
+    .trim()
+    .optional(),
+  description: z.string()
+    .max(500, 'Description cannot be longer than 500 characters')
+    .trim()
+    .optional(),
+  isTemplate: z.boolean().optional(),
+  variables: z.array(z.string()).optional(),
+  tags: z.array(z.string().min(1)).optional(),
+  category: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 // Schema for applying template variables
 export const applyTemplateSchema = z.object({
   id: z.string(),
-  variables: z.record(z.string()),
+  variables: z.record(z.string(), z.string()),
 });
 
 // Schema for listing prompts with filters

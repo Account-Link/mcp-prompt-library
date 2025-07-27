@@ -75,7 +75,7 @@ export class PromptService {
 
     return this._templateEngine.applyTemplate(
       prompt.content,
-      args.variables
+      args.variables as Record<string, string>
     );
   }
 
