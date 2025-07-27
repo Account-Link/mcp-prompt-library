@@ -17,6 +17,7 @@ import {
   updatePromptSchema,
   promptSchema,
 } from './types.js';
+import { defaultTemplateEngine } from './template-engine.js';
 
 // Index schema for fast metadata lookup
 const indexEntrySchema = z.object({
@@ -66,6 +67,11 @@ export class FilePromptRepository implements PromptRepository {
     
     // Validate input
     const validated = createPromptSchema.parse(promptData);
+    
+    // Extract variables if it's a template
+    if (validated.isTemplate) {
+      validated.variables = defaultTemplateEngine.extractVariables(validated.content);
+    }
     
     // Generate prompt ID and metadata
     const id = this.generateId(validated.name);
@@ -179,6 +185,15 @@ export class FilePromptRepository implements PromptRepository {
     const current = await this.getById(id);
     if (!current) {
       throw new NotFoundError('Prompt', id);
+    }
+
+    // Extract variables if updating to template or updating content
+    if (validated.isTemplate && validated.content) {
+      validated.variables = defaultTemplateEngine.extractVariables(validated.content);
+    } else if (validated.isTemplate === false) {
+      validated.variables = [];
+    } else if (validated.content && current.isTemplate) {
+      validated.variables = defaultTemplateEngine.extractVariables(validated.content);
     }
 
     // Create updated prompt

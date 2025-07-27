@@ -21,11 +21,6 @@ export class PromptService {
    * Create a new prompt
    */
   async createPrompt(data: CreatePromptArgs): Promise<Prompt> {
-    // Extract variables from content if it's a template
-    if (data.isTemplate) {
-      data.variables = this.templateEngine.extractVariables(data.content);
-    }
-
     return await this.repository.save(data);
   }
 
@@ -51,13 +46,6 @@ export class PromptService {
    * Update a prompt
    */
   async updatePrompt(id: string, updates: UpdatePromptArgs): Promise<Prompt> {
-    // Extract variables from content if it's a template
-    if (updates.isTemplate && updates.content) {
-      updates.variables = this.templateEngine.extractVariables(updates.content);
-    } else if (updates.isTemplate === false) {
-      updates.variables = [];
-    }
-
     return await this.repository.update(id, updates);
   }
 
