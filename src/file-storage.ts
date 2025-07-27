@@ -82,9 +82,9 @@ export class FilePromptRepository implements PromptRepository {
       createdAt: now,
       updatedAt: now,
       version,
-      description: validated.description,
-      category: validated.category,
-      metadata: validated.metadata,
+      ...(validated.description !== undefined && { description: validated.description }),
+      ...(validated.category !== undefined && { category: validated.category }),
+      ...(validated.metadata !== undefined && { metadata: validated.metadata }),
     };
 
     // Validate complete prompt
@@ -125,7 +125,7 @@ export class FilePromptRepository implements PromptRepository {
         updatedAt: new Date(prompt.updatedAt),
       });
       
-      return validated;
+      return validated as Prompt;
     } catch (error) {
       if ((error as any).code === 'ENOENT') {
         return null;
@@ -206,9 +206,9 @@ export class FilePromptRepository implements PromptRepository {
       updatedAt: new Date(),
       name: validated.name ?? current.name,
       content: validated.content ?? current.content,
-      description: validated.description,
-      category: validated.category,
-      metadata: validated.metadata,
+      ...(validated.description !== undefined && { description: validated.description }),
+      ...(validated.category !== undefined && { category: validated.category }),
+      ...(validated.metadata !== undefined && { metadata: validated.metadata }),
     };
 
     // Validate complete prompt

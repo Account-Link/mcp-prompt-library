@@ -371,14 +371,14 @@ export class McpPromptServer {
         title: 'Prompt Details',
         description: 'Details of a specific prompt',
       },
-      async (uri: string) => {
+      async (uri: URL) => {
         try {
-          const id = uri.split('/').pop()!;
+          const id = uri.pathname.split('/').pop()!;
           const prompt = await this.promptService.getPrompt(id);
           return {
             contents: [
               {
-                uri,
+                uri: uri.toString(),
                 mimeType: 'application/json',
                 text: JSON.stringify(prompt, null, 2),
               },
@@ -388,7 +388,7 @@ export class McpPromptServer {
           return {
             contents: [
               {
-                uri,
+                uri: uri.toString(),
                 mimeType: 'text/plain',
                 text: `Error loading prompt: ${error}`,
               },
