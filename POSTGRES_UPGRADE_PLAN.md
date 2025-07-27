@@ -1,7 +1,7 @@
-# PostgreSQL Upgrade Plan for MCP Prompt Management
+# PostgreSQL Implementation Plan for MCP Prompt Management
 
 ## Overview
-This plan outlines the migration from file-based storage to PostgreSQL for the MCP prompt management system, using Docker to avoid conflicts with local PostgreSQL instances.
+This plan outlines the implementation of PostgreSQL storage for the MCP prompt management system, replacing the current file-based storage approach. Using Docker to avoid conflicts with local PostgreSQL instances.
 
 ## Current Architecture Analysis
 
@@ -175,23 +175,17 @@ volumes:
    - Transaction support for atomic operations
    - Prepared statements for security
 
-### Phase 3: Migration Tools
+### Phase 3: Testing & Validation
 
-1. **Data Migration Script**
-   ```typescript
-   class MigrationService {
-     async migrateFromFileStorage(
-       fileRepo: FilePromptRepository,
-       postgresRepo: PostgresPromptRepository
-     ): Promise<MigrationResult>
-   }
-   ```
+1. **Unit Tests**
+   - Repository method tests
+   - Transaction tests
+   - Error handling tests
 
-2. **Migration Features**
-   - Batch processing for large datasets
-   - Progress tracking and logging
-   - Rollback capability
-   - Data validation and integrity checks
+2. **Integration Tests**
+   - Full workflow tests
+   - Performance tests
+   - Feature parity testing
 
 ### Phase 4: Configuration & Environment
 
@@ -213,23 +207,6 @@ volumes:
    - Environment variables
    - Configuration files
    - Docker secrets (for production)
-
-### Phase 5: Testing & Validation
-
-1. **Unit Tests**
-   - Repository method tests
-   - Transaction tests
-   - Error handling tests
-
-2. **Integration Tests**
-   - Full workflow tests
-   - Migration tests
-   - Performance tests
-
-3. **Migration Validation**
-   - Data integrity verification
-   - Performance comparison
-   - Feature parity testing
 
 ## Implementation Steps
 
@@ -256,20 +233,13 @@ npm install pg @types/pg
 - Implement all CRUD operations
 - Add transaction support
 
-### Step 4: Migration Tools (Day 4-5)
-- Create migration service
-- Add data validation
-- Implement rollback functionality
-
-### Step 5: Testing & Integration (Day 5-6)
+### Step 4: Testing & Integration (Day 4-5)
 - Unit tests for new repository
 - Integration tests
-- Migration testing
 - Performance testing
 
-### Step 6: Deployment & Switchover (Day 6-7)
+### Step 5: Deployment (Day 5-6)
 - Deploy PostgreSQL container
-- Run migration
 - Switch to PostgreSQL repository
 - Monitor and validate
 
@@ -339,9 +309,8 @@ volumes:
 
 ### Data Safety
 - **Backup Strategy**: Regular PostgreSQL backups
-- **Migration Rollback**: Keep file storage as fallback
-- **Data Validation**: Comprehensive migration validation
-- **Gradual Migration**: Migrate in batches
+- **Data Validation**: Comprehensive testing and validation
+- **Rollback Plan**: Keep file storage as fallback option
 
 ### Performance
 - **Connection Pooling**: Prevent connection exhaustion
@@ -352,19 +321,17 @@ volumes:
 ### Compatibility
 - **API Compatibility**: Maintain existing MCP interface
 - **Feature Parity**: Ensure all features work identically
-- **Backward Compatibility**: Support both storage types during transition
 
 ## Success Criteria
 
 1. **Functional Requirements**
    - All existing MCP operations work identically
    - Performance is equal or better than file storage
-   - Data integrity is maintained during migration
+   - Data integrity is maintained
 
 2. **Non-Functional Requirements**
    - Database connection stability
    - Query performance under load
-   - Migration process reliability
    - Rollback capability
 
 3. **Operational Requirements**
@@ -376,7 +343,6 @@ volumes:
 ## Timeline Summary
 
 - **Week 1**: Infrastructure setup and basic repository implementation
-- **Week 2**: Advanced features, testing, and migration tools
-- **Week 3**: Integration testing and deployment
+- **Week 2**: Advanced features, testing, and deployment
 
-**Total Estimated Time**: 2-3 weeks for complete implementation and testing. 
+**Total Estimated Time**: 1-2 weeks for complete implementation and testing. 
