@@ -1,1 +1,11 @@
-{}
+{
+  "test-prompt-04d8d3c3": {
+    "id": "test-prompt-04d8d3c3",
+    "name": "Test Prompt",
+    "isTemplate": false,
+    "tags": [],
+    "createdAt": "2025-07-27T15:48:02.220Z",
+    "updatedAt": "2025-07-27T15:48:02.220Z",
+    "version": 1
+  }
+}

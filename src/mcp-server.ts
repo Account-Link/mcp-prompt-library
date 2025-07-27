@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { zString, zNumber, zBoolean, zArray, zOptional, zRecord } from './zod-compat.js';
+import { z } from 'zod';
 import { PromptService } from './prompt-service.js';
 
 export class McpPromptServer {
@@ -26,15 +26,16 @@ export class McpPromptServer {
         title: 'Add Prompt',
         description: 'Create a new prompt or template',
         inputSchema: {
-          name: zString('Name of the prompt'),
-          content: zString('Content of the prompt'),
-          description: zOptional(zString(), 'Optional description'),
-          isTemplate: zOptional(zBoolean(), 'Whether this is a template'),
-          tags: zOptional(zArray(zString()), 'Tags for categorization'),
-          category: zOptional(zString(), 'Category for organization'),
+          name: z.string().describe('Name of the prompt'),
+          content: z.string().describe('Content of the prompt'),
+          description: z.string().optional().describe('Optional description'),
+          isTemplate: z.boolean().optional().describe('Whether this is a template'),
+          tags: z.array(z.string()).optional().describe('Tags for categorization'),
+          category: z.string().optional().describe('Category for organization'),
         },
       },
-      async ({ name, content, description, isTemplate = false, tags = [], category }) => {
+      async (args: any) => {
+        const { name, content, description, isTemplate = false, tags = [], category } = args;
         try {
           const prompt = await this.promptService.createPrompt({
             name,
@@ -74,11 +75,12 @@ export class McpPromptServer {
         title: 'Get Prompt',
         description: 'Retrieve a prompt by its ID',
         inputSchema: {
-          id: zString('ID of the prompt to retrieve'),
-          version: zOptional(zNumber(), 'Specific version (optional)'),
+          id: z.string().describe('ID of the prompt to retrieve'),
+          version: z.number().optional().describe('Specific version (optional)'),
         },
       },
-      async ({ id, version }) => {
+      async (args: any) => {
+        const { id, version } = args;
         try {
           const prompt = await this.promptService.getPrompt(id, version);
           return {
@@ -109,14 +111,15 @@ export class McpPromptServer {
         title: 'List Prompts',
         description: 'List all prompts with optional filtering',
         inputSchema: {
-          category: zOptional(zString(), 'Filter by category'),
-          isTemplate: zOptional(zBoolean(), 'Filter by template status'),
-          tags: zOptional(zArray(zString()), 'Filter by tags'),
-          limit: zOptional(zNumber(), 'Maximum number of results'),
-          offset: zOptional(zNumber(), 'Number of results to skip'),
+          category: z.string().optional().describe('Filter by category'),
+          isTemplate: z.boolean().optional().describe('Filter by template status'),
+          tags: z.array(z.string()).optional().describe('Filter by tags'),
+          limit: z.number().optional().describe('Maximum number of results'),
+          offset: z.number().optional().describe('Number of results to skip'),
         },
       },
-      async (options) => {
+      async (args: any) => {
+        const options = args;
         try {
           const prompts = await this.promptService.listPrompts(options);
           return {
@@ -147,16 +150,17 @@ export class McpPromptServer {
         title: 'Update Prompt',
         description: 'Update an existing prompt',
         inputSchema: {
-          id: zString('ID of the prompt to update'),
-          name: zOptional(zString(), 'New name'),
-          content: zOptional(zString(), 'New content'),
-          description: zOptional(zString(), 'New description'),
-          isTemplate: zOptional(zBoolean(), 'New template status'),
-          tags: zOptional(zArray(zString()), 'New tags'),
-          category: zOptional(zString(), 'New category'),
+          id: z.string().describe('ID of the prompt to update'),
+          name: z.string().optional().describe('New name'),
+          content: z.string().optional().describe('New content'),
+          description: z.string().optional().describe('New description'),
+          isTemplate: z.boolean().optional().describe('New template status'),
+          tags: z.array(z.string()).optional().describe('New tags'),
+          category: z.string().optional().describe('New category'),
         },
       },
-      async ({ id, ...updates }) => {
+      async (args: any) => {
+        const { id, ...updates } = args;
         try {
           const prompt = await this.promptService.updatePrompt(id, updates);
           return {
@@ -187,11 +191,12 @@ export class McpPromptServer {
         title: 'Delete Prompt',
         description: 'Delete a prompt by its ID',
         inputSchema: {
-          id: zString('ID of the prompt to delete'),
-          version: zOptional(zNumber(), 'Specific version to delete (optional)'),
+          id: z.string().describe('ID of the prompt to delete'),
+          version: z.number().optional().describe('Specific version to delete (optional)'),
         },
       },
-      async ({ id, version }) => {
+      async (args: any) => {
+        const { id, version } = args;
         try {
           const deleted = await this.promptService.deletePrompt(id, version);
           if (deleted) {
@@ -233,11 +238,12 @@ export class McpPromptServer {
         title: 'Apply Template',
         description: 'Apply variables to a template prompt',
         inputSchema: {
-          id: zString('ID of the template prompt'),
-          variables: zRecord(zString(), 'Variables to substitute'),
+          id: z.string().describe('ID of the template prompt'),
+          variables: z.record(z.string(), z.string()).describe('Variables to substitute'),
         },
       },
-      async ({ id, variables }) => {
+      async (args: any) => {
+        const { id, variables } = args;
         try {
           const result = await this.promptService.applyTemplate({ id, variables });
           return {
@@ -268,10 +274,11 @@ export class McpPromptServer {
         title: 'Search Prompts',
         description: 'Search prompts by content, name, or tags',
         inputSchema: {
-          query: zString('Search query'),
+          query: z.string().describe('Search query'),
         },
       },
-      async ({ query }) => {
+      async (args: any) => {
+        const { query } = args;
         try {
           const prompts = await this.promptService.searchPrompts(query);
           return {
