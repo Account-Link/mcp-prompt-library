@@ -49,7 +49,7 @@ export const promptVariables = pgTable('prompt_variables', {
   variableOrder: integer('variable_order').notNull(),
 });
 
-// Auto-generated Zod schemas for type safety
+// Auto-generated Zod schemas for validation (not for type inference)
 export const insertPromptSchema = createInsertSchema(prompts);
 export const selectPromptSchema = createSelectSchema(prompts);
 
@@ -62,23 +62,111 @@ export const selectTagSchema = createSelectSchema(tags);
 export const insertPromptTagSchema = createInsertSchema(promptTags);
 export const selectPromptTagSchema = createSelectSchema(promptTags);
 
-export const insertPromptVariableSchema = createInsertSchema(promptVariables);
+export const insertPromptVariableSchema = createSelectSchema(promptVariables);
 export const selectPromptVariableSchema = createSelectSchema(promptVariables);
 
-// TypeScript types derived from Zod schemas
-export type Prompt = z.infer<typeof selectPromptSchema>;
-export type CreatePrompt = z.infer<typeof insertPromptSchema>;
-export type PromptVersion = z.infer<typeof selectPromptVersionSchema>;
-export type CreatePromptVersion = z.infer<typeof insertPromptVersionSchema>;
-export type Tag = z.infer<typeof selectTagSchema>;
-export type CreateTag = z.infer<typeof insertTagSchema>;
-export type PromptTag = z.infer<typeof selectPromptTagSchema>;
-export type CreatePromptTag = z.infer<typeof insertPromptTagSchema>;
-export type PromptVariable = z.infer<typeof selectPromptVariableSchema>;
-export type CreatePromptVariable = z.infer<typeof insertPromptVariableSchema>;
+// Manual type definitions that match the existing types.ts interface
+export interface Prompt {
+  id: string;
+  name: string;
+  content: string;
+  description?: string;
+  isTemplate: boolean;
+  variables: string[];
+  tags: string[];
+  category?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+  version: number;
+}
+
+export interface CreatePrompt {
+  id?: string;
+  name: string;
+  content: string;
+  description?: string;
+  isTemplate?: boolean;
+  category?: string;
+  metadata?: Record<string, unknown>;
+  createdAt?: Date;
+  updatedAt?: Date;
+  version?: number;
+}
+
+export interface PromptVersion {
+  id: string;
+  version: number;
+  name: string;
+  content: string;
+  description?: string;
+  isTemplate: boolean;
+  category?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreatePromptVersion {
+  id: string;
+  version: number;
+  name: string;
+  content: string;
+  description?: string;
+  isTemplate: boolean;
+  category?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+}
+
+export interface CreateTag {
+  id?: number;
+  name: string;
+}
+
+export interface PromptTag {
+  promptId: string;
+  tagId: number;
+}
+
+export interface CreatePromptTag {
+  promptId: string;
+  tagId: number;
+}
+
+export interface PromptVariable {
+  promptId: string;
+  variableName: string;
+  variableOrder: number;
+}
+
+export interface CreatePromptVariable {
+  promptId: string;
+  variableName: string;
+  variableOrder: number;
+}
 
 // Extended Prompt type with related data
-export interface PromptWithRelations extends Prompt {
-  tags: Tag[];
-  variables: PromptVariable[];
+export interface PromptWithRelations {
+  id: string;
+  name: string;
+  content: string;
+  description?: string;
+  isTemplate: boolean;
+  variables: string[];
+  tags: string[];
+  category?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+  version: number;
+  // Additional relation data
+  tagObjects: Tag[];
+  variableObjects: PromptVariable[];
 } 

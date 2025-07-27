@@ -5,12 +5,12 @@ export interface Prompt {
   id: string;
   name: string;
   content: string;
-  description?: string;
+  description: string | null;
   isTemplate: boolean;
   variables: string[];
   tags: string[];
-  category?: string;
-  metadata?: Record<string, unknown>;
+  category: string | null;
+  metadata: Record<string, unknown> | null;
   createdAt: Date;
   updatedAt: Date;
   version: number;

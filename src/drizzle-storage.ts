@@ -8,15 +8,6 @@ import {
   promptTags,
   promptVariables,
   insertPromptSchema,
-  selectPromptSchema,
-  insertPromptVersionSchema,
-  selectPromptVersionSchema,
-  insertTagSchema,
-  selectTagSchema,
-  insertPromptTagSchema,
-  selectPromptTagSchema,
-  insertPromptVariableSchema,
-  selectPromptVariableSchema,
 } from './schema.js';
 import type { PromptRepository, CreatePromptArgs, UpdatePromptArgs, ListPromptsArgs, Prompt } from './types.js';
 
@@ -78,7 +69,7 @@ export class DrizzlePromptRepository implements PromptRepository {
     });
 
     // Use transaction for atomic operations
-    return await this.db.transaction(async (tx) => {
+    const result = await this.db.transaction(async (tx) => {
       // Insert main prompt
       const [prompt] = await tx.insert(prompts).values(validatedData).returning();
       
@@ -107,8 +98,14 @@ export class DrizzlePromptRepository implements PromptRepository {
       }
 
       // Return complete prompt with tags and variables
-      return await this.getByIdInternal(tx, prompt.id);
+      return await this.getByIdInternal(this.db, prompt.id);
     });
+
+    if (!result) {
+      throw new Error('Failed to create prompt');
+    }
+
+    return result;
   }
 
   async getById(id: string, version?: number): Promise<Prompt | null> {
@@ -130,12 +127,12 @@ export class DrizzlePromptRepository implements PromptRepository {
         id: result.id,
         name: result.name,
         content: result.content,
-        description: result.description || undefined,
+        description: result.description,
         isTemplate: result.isTemplate,
         tags,
         variables,
-        category: result.category || undefined,
-        metadata: result.metadata || undefined,
+        category: result.category,
+        metadata: result.metadata as Record<string, unknown> | null,
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
         version: result.version,
@@ -163,12 +160,12 @@ export class DrizzlePromptRepository implements PromptRepository {
       id: result.id,
       name: result.name,
       content: result.content,
-      description: result.description || undefined,
+      description: result.description,
       isTemplate: result.isTemplate,
       tags,
       variables,
-      category: result.category || undefined,
-      metadata: result.metadata || undefined,
+      category: result.category,
+      metadata: result.metadata as Record<string, unknown> | null,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
       version: result.version,
@@ -179,10 +176,8 @@ export class DrizzlePromptRepository implements PromptRepository {
     const { category, isTemplate, tags: tagFilter, limit = 50, offset = 0 } = options || {};
 
     let query = this.db.select().from(prompts);
-
-    // Apply filters
     const conditions = [];
-    
+
     if (category) {
       conditions.push(eq(prompts.category, category));
     }
@@ -195,14 +190,16 @@ export class DrizzlePromptRepository implements PromptRepository {
       // Filter by tags using subquery
       const tagIds = await this.getTagIds(tagFilter);
       if (tagIds.length > 0) {
-        const promptIdsWithTags = this.db
+        const promptIds = await this.db
           .select({ promptId: promptTags.promptId })
           .from(promptTags)
           .where(inArray(promptTags.tagId, tagIds))
           .groupBy(promptTags.promptId)
           .having(sql`COUNT(*) = ${tagFilter.length}`);
-
-        conditions.push(inArray(prompts.id, promptIdsWithTags));
+        
+        if (promptIds.length > 0) {
+          conditions.push(inArray(prompts.id, promptIds.map(p => p.promptId)));
+        }
       }
     }
 
@@ -210,9 +207,7 @@ export class DrizzlePromptRepository implements PromptRepository {
       query = query.where(and(...conditions));
     }
 
-    // Apply pagination
     query = query.limit(limit).offset(offset).orderBy(desc(prompts.updatedAt));
-
     const results = await query;
 
     // Load tags and variables for all prompts
@@ -225,12 +220,12 @@ export class DrizzlePromptRepository implements PromptRepository {
           id: prompt.id,
           name: prompt.name,
           content: prompt.content,
-          description: prompt.description || undefined,
+          description: prompt.description,
           isTemplate: prompt.isTemplate,
           tags,
           variables,
-          category: prompt.category || undefined,
-          metadata: prompt.metadata || undefined,
+          category: prompt.category,
+          metadata: prompt.metadata as Record<string, unknown> | null,
           createdAt: prompt.createdAt,
           updatedAt: prompt.updatedAt,
           version: prompt.version,
