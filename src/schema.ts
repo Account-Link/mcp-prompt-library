@@ -1,6 +1,5 @@
 import { pgTable, text, boolean, timestamp, integer, jsonb, serial } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { z } from 'zod';
 
 // Prompts table (latest versions)
 export const prompts = pgTable('prompts', {

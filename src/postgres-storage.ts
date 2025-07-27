@@ -29,7 +29,7 @@ export class PostgresPromptRepository implements PromptRepository {
     // Insert main prompt
     const [prompt] = await this.client`
       INSERT INTO prompts (id, name, content, description, is_template, category, metadata, created_at, updated_at, version)
-      VALUES (${id}, ${data.name}, ${data.content}, ${data.description || null}, ${data.isTemplate}, ${data.category || null}, ${data.metadata || null}, ${now}, ${now}, 1)
+      VALUES (${id}, ${data.name}, ${data.content}, ${data.description || null}, ${data.isTemplate}, ${data.category || null}, ${data.metadata ? JSON.stringify(data.metadata) : null}, ${now}, ${now}, 1)
       RETURNING *
     `;
     
@@ -50,7 +50,11 @@ export class PostgresPromptRepository implements PromptRepository {
     }
 
     // Return complete prompt with tags and variables
-    return await this.getByIdInternal(this.client, prompt.id);
+    const result = await this.getByIdInternal(this.client, prompt.id);
+    if (!result) {
+      throw new Error('Failed to create prompt');
+    }
+    return result;
   }
 
   async getById(id: string, version?: number): Promise<Prompt | null> {
@@ -71,12 +75,12 @@ export class PostgresPromptRepository implements PromptRepository {
         id: result.id,
         name: result.name,
         content: result.content,
-        description: result.description || undefined,
+        description: result.description,
         isTemplate: result.is_template,
         tags,
         variables,
-        category: result.category || undefined,
-        metadata: result.metadata || undefined,
+        category: result.category,
+        metadata: result.metadata ? JSON.parse(result.metadata) : null,
         createdAt: result.created_at,
         updatedAt: result.updated_at,
         version: result.version,
@@ -102,12 +106,12 @@ export class PostgresPromptRepository implements PromptRepository {
       id: result.id,
       name: result.name,
       content: result.content,
-      description: result.description || undefined,
+      description: result.description,
       isTemplate: result.is_template,
       tags,
       variables,
-      category: result.category || undefined,
-      metadata: result.metadata || undefined,
+      category: result.category,
+      metadata: result.metadata ? JSON.parse(result.metadata) : null,
       createdAt: result.created_at,
       updatedAt: result.updated_at,
       version: result.version,
@@ -117,7 +121,6 @@ export class PostgresPromptRepository implements PromptRepository {
   async list(options?: ListPromptsArgs): Promise<Prompt[]> {
     const { category, isTemplate, tags: tagFilter, limit = 50, offset = 0 } = options || {};
 
-    let query = this.client`SELECT * FROM prompts`;
     const conditions = [];
     const params = [];
 
@@ -236,7 +239,11 @@ export class PostgresPromptRepository implements PromptRepository {
       }
     }
 
-    return await this.getByIdInternal(this.client, id);
+    const result = await this.getByIdInternal(this.client, id);
+    if (!result) {
+      throw new Error(`Failed to update prompt with id ${id}`);
+    }
+    return result;
   }
 
   async delete(id: string, version?: number): Promise<boolean> {
@@ -342,12 +349,12 @@ export class PostgresPromptRepository implements PromptRepository {
           id: prompt.id,
           name: prompt.name,
           content: prompt.content,
-          description: prompt.description || undefined,
+          description: prompt.description,
           isTemplate: prompt.is_template,
           tags,
           variables,
-          category: prompt.category || undefined,
-          metadata: prompt.metadata || undefined,
+          category: prompt.category,
+          metadata: prompt.metadata ? JSON.parse(prompt.metadata) : null,
           createdAt: prompt.created_at,
           updatedAt: prompt.updated_at,
           version: prompt.version,
