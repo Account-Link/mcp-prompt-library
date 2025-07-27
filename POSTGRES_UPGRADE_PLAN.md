@@ -140,7 +140,7 @@ volumes:
 2. **Create Docker Configuration**
    - `docker-compose.yml` for PostgreSQL service
    - `init.sql` for database schema
-   - `.env` file for configuration
+   - Secure credential management (see Security section)
 
 3. **Database Connection Management**
    - Connection pooling with `postgres` client
@@ -230,9 +230,10 @@ volumes:
    ```
 
 2. **Configuration Sources**
-   - Environment variables
-   - Configuration files
-   - Docker secrets (for production)
+   - Environment variables (development)
+   - Docker secrets (production)
+   - Kubernetes secrets (K8s deployment)
+   - Cloud secret managers (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager)
 
 ## Implementation Steps
 
@@ -240,9 +241,10 @@ volumes:
 ```bash
 # Create Docker setup
 mkdir docker
+mkdir secrets  # For secure credential storage
 touch docker-compose.yml
 touch docker/init.sql
-touch .env
+echo "secrets/" >> .gitignore  # Never commit secrets
 
 # Add Drizzle ORM dependencies
 npm install drizzle-orm postgres drizzle-zod
@@ -271,43 +273,127 @@ npm install --save-dev drizzle-kit @types/pg
 - Switch to Drizzle repository
 - Monitor and validate
 
-## Configuration Files
+## Security & Credential Management
 
-### Environment Variables (.env)
-```env
-# PostgreSQL Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5433
-POSTGRES_DB=mcp_prompts
-POSTGRES_USER=mcp_user
-POSTGRES_PASSWORD=mcp_password
-POSTGRES_POOL_SIZE=10
+### ❌ Avoid: .env Files
+`.env` files are **not secure** for production:
+- Credentials stored in plain text
+- Often committed to version control
+- No access controls
+- No rotation capabilities
 
-# Storage Configuration
-STORAGE_TYPE=postgres
+### ✅ Secure Alternatives
+
+#### 1. **Docker Secrets** (Recommended for Docker)
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16-alpine
+    secrets:
+      - postgres_password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt  # Not in version control
 ```
 
-### Docker Compose (docker-compose.yml)
+#### 2. **Kubernetes Secrets** (K8s deployment)
+```yaml
+# k8s-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  password: <base64-encoded-password>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-prompt-mgmt
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+```
+
+#### 3. **Cloud Secret Managers**
+```typescript
+// AWS Secrets Manager
+import { SecretsManager } from '@aws-sdk/client-secrets-manager';
+
+const secretsManager = new SecretsManager();
+const secret = await secretsManager.getSecretValue({
+  SecretId: 'mcp-postgres-credentials'
+});
+
+// Azure Key Vault
+import { DefaultAzureCredential } from '@azure/identity';
+import { SecretClient } from '@azure/keyvault-secrets';
+
+const credential = new DefaultAzureCredential();
+const client = new SecretClient('https://your-vault.vault.azure.net/', credential);
+const secret = await client.getSecret('postgres-password');
+
+// GCP Secret Manager
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+
+const client = new SecretManagerServiceClient();
+const [version] = await client.accessSecretVersion({
+  name: 'projects/your-project/secrets/postgres-password/versions/latest'
+});
+```
+
+#### 4. **Environment Variables** (Development Only)
+```bash
+# Only for local development
+export POSTGRES_PASSWORD="your-dev-password"
+```
+
+### Configuration Priority
+1. **Production**: Cloud secret managers or K8s secrets
+2. **Docker**: Docker secrets
+3. **Development**: Environment variables (never committed)
+
+### Docker Compose with Secrets (docker-compose.yml)
 ```yaml
 version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
     container_name: mcp-prompt-postgres
+    secrets:
+      - postgres_password
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mcp_prompts
+      POSTGRES_USER: mcp_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U mcp_user -d mcp_prompts"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt  # Not in version control
 
 volumes:
   postgres_data:
@@ -341,6 +427,12 @@ volumes:
 ### Data Safety
 - **Backup Strategy**: Regular PostgreSQL backups
 - **Data Validation**: Comprehensive testing and validation
+
+### Security
+- **Credential Management**: Use Docker secrets, K8s secrets, or cloud secret managers
+- **No Plain Text**: Never store credentials in .env files or version control
+- **Access Controls**: Implement proper database user permissions
+- **Connection Security**: Use SSL/TLS for database connections
 
 ### Performance
 - **Connection Pooling**: Prevent connection exhaustion
