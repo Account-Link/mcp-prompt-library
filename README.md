@@ -66,6 +66,9 @@ npm install
 # Run tests
 npm test
 
+# Run linting
+npm run lint
+
 # Start development server
 npm run dev
 
@@ -112,16 +115,17 @@ npx mcp-prompt-mgmt
 - Schema validation
 - Template variable substitution
 - Error handling
+- Security (path traversal protection)
 
 ### Integration Tests
 - MCP server communication
 - End-to-end prompt operations
 - CLI command execution
 
-### Test Coverage Goals
-- **90%+ line coverage** for core functionality
+### Test Coverage
+- **73 tests passing** across all core functionality
 - **100% coverage** for critical paths (file operations)
-- **Integration tests** for all MCP tools
+- **Security tests** for path traversal protection
 
 ## 🎯 Success Criteria
 
@@ -142,7 +146,8 @@ A successful implementation will:
 | **PostgreSQL** | ❌ Not implemented | ❌ Out of scope |
 | **REST API** | ❌ Not implemented | ❌ Out of scope |
 | **CLI** | ❌ Not implemented | ✅ Simple CLI |
-| **Testing** | ⚠️ Minimal | ✅ Comprehensive |
+| **Testing** | ⚠️ Minimal | ✅ Comprehensive (73 tests) |
+| **Security** | ⚠️ Unknown | ✅ Path traversal protection |
 | **Complexity** | 🔴 High | 🟢 Low |
 | **Maintainability** | 🔴 Poor | 🟢 Excellent |
 

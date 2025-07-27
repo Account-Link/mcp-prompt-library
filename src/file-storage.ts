@@ -212,10 +212,26 @@ export class FilePromptRepository implements PromptRepository {
       createdAt: current.createdAt,
       updatedAt: new Date(),
       version: current.version + 1,
-      description: validated.description ?? current.description,
-      category: validated.category ?? current.category,
-      metadata: validated.metadata ?? current.metadata,
     };
+
+    // Add optional properties only if they exist
+    if (validated.description !== undefined) {
+      updated.description = validated.description;
+    } else if (current.description !== undefined) {
+      updated.description = current.description;
+    }
+    
+    if (validated.category !== undefined) {
+      updated.category = validated.category;
+    } else if (current.category !== undefined) {
+      updated.category = current.category;
+    }
+    
+    if (validated.metadata !== undefined) {
+      updated.metadata = validated.metadata;
+    } else if (current.metadata !== undefined) {
+      updated.metadata = current.metadata;
+    }
 
     // Validate complete prompt
     promptSchema.parse(updated);
