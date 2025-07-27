@@ -1,7 +1,7 @@
 import * as fsp from 'fs/promises';
-import path from 'path';
+import * as path from 'path';
 import { randomUUID } from 'crypto';
-import lockfile from 'proper-lockfile';
+import * as lockfile from 'proper-lockfile';
 import { z } from 'zod';
 import {
   Prompt,

@@ -52,7 +52,7 @@ async function main() {
     const keepAlive = setInterval(() => {}, 1000);
 
     // Graceful shutdown
-    async function shutdown() {
+    const shutdown = async () => {
       logger.info('Shutting down MCP Prompt Manager...');
       clearInterval(keepAlive);
       await mcpServer.close();
