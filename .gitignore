@@ -47,4 +47,7 @@ temp/
 # Test data
 tests/tmp-*/
 tests/tmp-prompts/
-tests/tmp-service/ 
+tests/tmp-service/
+
+# Secrets and credentials
+secrets/ secrets/
