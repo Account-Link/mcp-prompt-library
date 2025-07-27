@@ -25,5 +25,16 @@
     "createdAt": "2025-07-27T19:06:56.066Z",
     "updatedAt": "2025-07-27T19:06:56.066Z",
     "version": 1
+  },
+  "test-prompt-fe638886": {
+    "id": "test-prompt-fe638886",
+    "name": "Test Prompt",
+    "description": null,
+    "isTemplate": false,
+    "tags": [],
+    "category": null,
+    "createdAt": "2025-07-27T20:52:33.890Z",
+    "updatedAt": "2025-07-27T20:52:33.890Z",
+    "version": 1
   }
 }

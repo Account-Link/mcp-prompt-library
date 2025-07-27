@@ -1,0 +1,14 @@
+{
+  "id": "test-prompt-fe638886",
+  "name": "Test Prompt",
+  "content": "This is a test prompt content",
+  "description": null,
+  "isTemplate": false,
+  "variables": [],
+  "tags": [],
+  "category": null,
+  "metadata": null,
+  "createdAt": "2025-07-27T20:52:33.890Z",
+  "updatedAt": "2025-07-27T20:52:33.890Z",
+  "version": 1
+}

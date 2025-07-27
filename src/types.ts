@@ -28,12 +28,13 @@ export const createPromptSchema = z.object({
   description: z.string()
     .max(500, 'Description cannot be longer than 500 characters')
     .trim()
-    .optional(),
+    .nullable()
+    .default(null),
   isTemplate: z.boolean().default(false),
   variables: z.array(z.string()).default([]),
   tags: z.array(z.string().min(1)).default([]),
-  category: z.string().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  category: z.string().nullable().default(null),
+  metadata: z.record(z.string(), z.unknown()).nullable().default(null),
 });
 
 // Schema for a complete prompt (including server-generated fields)
@@ -58,12 +59,13 @@ export const updatePromptSchema = z.object({
   description: z.string()
     .max(500, 'Description cannot be longer than 500 characters')
     .trim()
+    .nullable()
     .optional(),
   isTemplate: z.boolean().optional(),
   variables: z.array(z.string()).optional(),
   tags: z.array(z.string().min(1)).optional(),
-  category: z.string().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  category: z.string().nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
 // Schema for applying template variables
