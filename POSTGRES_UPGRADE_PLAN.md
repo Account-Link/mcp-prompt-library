@@ -130,10 +130,11 @@ volumes:
 
 ### Phase 1: Infrastructure Setup
 
-1. **Add PostgreSQL Dependencies**
+1. **Add Drizzle ORM Dependencies**
    ```bash
-   npm install pg @types/pg
-   npm install --save-dev @types/pg
+   npm install drizzle-orm postgres
+   npm install drizzle-zod
+   npm install --save-dev drizzle-kit @types/pg
    ```
 
 2. **Create Docker Configuration**
@@ -142,38 +143,64 @@ volumes:
    - `.env` file for configuration
 
 3. **Database Connection Management**
-   - Connection pooling with `pg.Pool`
+   - Connection pooling with `postgres` client
    - Environment-based configuration
    - Health checks and reconnection logic
 
-### Phase 2: PostgreSQL Repository Implementation
+### Phase 2: Drizzle Repository Implementation
 
-1. **Create `PostgresPromptRepository` Class**
+1. **Create Schema with Zod Integration**
    ```typescript
-   export class PostgresPromptRepository implements PromptRepository {
-     private pool: pg.Pool;
+   // schema.ts - Single source of truth
+   import { pgTable, text, boolean, timestamp, integer, jsonb } from 'drizzle-orm/pg-core';
+   import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+   export const prompts = pgTable('prompts', {
+     id: text('id').primaryKey(),
+     name: text('name').notNull(),
+     content: text('content').notNull(),
+     description: text('description'),
+     isTemplate: boolean('is_template').notNull().default(false),
+     category: text('category'),
+     metadata: jsonb('metadata'),
+     createdAt: timestamp('created_at').notNull().defaultNow(),
+     updatedAt: timestamp('updated_at').notNull().defaultNow(),
+     version: integer('version').notNull().default(1),
+   });
+
+   // Auto-generated Zod schemas
+   export const insertPromptSchema = createInsertSchema(prompts);
+   export const selectPromptSchema = createSelectSchema(prompts);
+   ```
+
+2. **Create `DrizzlePromptRepository` Class**
+   ```typescript
+   export class DrizzlePromptRepository implements PromptRepository {
+     private db: ReturnType<typeof drizzle>;
      
      constructor(config: PostgresConfig) {
-       this.pool = new pg.Pool(config);
+       const client = postgres(config.connectionString);
+       this.db = drizzle(client);
      }
      
-     // Implement all repository methods
+     // Implement all repository methods with type safety
    }
    ```
 
 2. **Core Methods Implementation**
-   - `save()`: Insert into prompts + prompt_versions + tags + variables
-   - `getById()`: Query prompts table with optional version
-   - `list()`: Complex queries with filtering and pagination
-   - `update()`: Insert new version, update prompts table
-   - `delete()`: Soft delete or hard delete based on version
-   - `listVersions()`: Query prompt_versions table
+   - `save()`: Type-safe insert with automatic Zod validation
+   - `getById()`: Type-safe query with optional version
+   - `list()`: Type-safe queries with filtering and pagination
+   - `update()`: Type-safe updates with versioning
+   - `delete()`: Type-safe deletion with version support
+   - `listVersions()`: Type-safe version queries
 
 3. **Advanced Features**
    - Full-text search using PostgreSQL's `tsvector`
    - Efficient pagination with `LIMIT` and `OFFSET`
    - Transaction support for atomic operations
-   - Prepared statements for security
+   - Type-safe query building with Drizzle
+   - Automatic Zod validation on all operations
 
 ### Phase 3: Testing & Validation
 
@@ -192,14 +219,13 @@ volumes:
 1. **Environment Configuration**
    ```typescript
    interface PostgresConfig {
-     host: string;
-     port: number;
-     database: string;
-     user: string;
-     password: string;
-     max: number; // pool size
-     idleTimeoutMillis: number;
-     connectionTimeoutMillis: number;
+     connectionString: string;
+     // Or individual fields:
+     // host: string;
+     // port: number;
+     // database: string;
+     // user: string;
+     // password: string;
    }
    ```
 
@@ -218,19 +244,20 @@ touch docker-compose.yml
 touch docker/init.sql
 touch .env
 
-# Add PostgreSQL dependencies
-npm install pg @types/pg
+# Add Drizzle ORM dependencies
+npm install drizzle-orm postgres drizzle-zod
+npm install --save-dev drizzle-kit @types/pg
 ```
 
 ### Step 2: Database Schema (Day 1-2)
-- Create `init.sql` with complete schema
-- Add indexes for performance
+- Create Drizzle schema with Zod integration
+- Generate migrations with `drizzle-kit`
 - Test schema with Docker setup
 
 ### Step 3: Repository Implementation (Day 2-4)
-- Implement `PostgresPromptRepository`
+- Implement `DrizzlePromptRepository`
 - Add connection management
-- Implement all CRUD operations
+- Implement all CRUD operations with type safety
 - Add transaction support
 
 ### Step 4: Testing & Integration (Day 4-5)
@@ -240,7 +267,8 @@ npm install pg @types/pg
 
 ### Step 5: Deployment (Day 5-6)
 - Deploy PostgreSQL container
-- Switch to PostgreSQL repository
+- Run Drizzle migrations
+- Switch to Drizzle repository
 - Monitor and validate
 
 ## Configuration Files
@@ -285,13 +313,14 @@ volumes:
   postgres_data:
 ```
 
-## Benefits of PostgreSQL Migration
+## Benefits of Drizzle ORM + PostgreSQL
 
 ### Performance Improvements
 - **Indexed Queries**: Fast filtering by category, tags, templates
 - **Full-Text Search**: Native PostgreSQL text search capabilities
 - **Pagination**: Efficient LIMIT/OFFSET queries
 - **Concurrent Access**: No file locking issues
+- **Type-Safe Queries**: Compile-time query validation
 
 ### Scalability
 - **Connection Pooling**: Handle multiple concurrent requests
@@ -300,10 +329,12 @@ volumes:
 - **Replication**: Read replicas for high availability
 
 ### Features
-- **Complex Queries**: Advanced filtering and sorting
-- **Data Integrity**: Foreign key constraints
+- **Complex Queries**: Advanced filtering and sorting with type safety
+- **Data Integrity**: Foreign key constraints + Zod validation
 - **Audit Trail**: Complete version history
 - **Metadata Search**: JSONB queries for flexible metadata
+- **Single Source of Truth**: Schema defined once, used everywhere
+- **Auto-Generated Types**: Full TypeScript integration
 
 ## Risk Mitigation
 
@@ -313,7 +344,7 @@ volumes:
 
 ### Performance
 - **Connection Pooling**: Prevent connection exhaustion
-- **Query Optimization**: Proper indexing strategy
+- **Query Optimization**: Proper indexing strategy + type-safe queries
 - **Monitoring**: Database performance metrics
 - **Load Testing**: Validate under expected load
 
@@ -337,6 +368,44 @@ volumes:
    - Database backup procedures
    - Monitoring and alerting
    - Documentation updates
+
+## Drizzle ORM + Zod Advantages
+
+### Why Drizzle Over Raw SQL
+1. **Type Safety**: Compile-time query validation prevents runtime errors
+2. **Zod Integration**: Automatic schema validation with `drizzle-zod`
+3. **Less Boilerplate**: No manual SQL queries or Zod schema definitions
+4. **Migrations**: Built-in migration system with `drizzle-kit`
+5. **Query Builder**: Intuitive, type-safe query building
+6. **Single Source of Truth**: Schema defined once, used for database + validation
+
+### Implementation Example
+```typescript
+// schema.ts - Define once, use everywhere
+import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+
+export const prompts = pgTable('prompts', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  content: text('content').notNull(),
+  isTemplate: boolean('is_template').notNull().default(false),
+});
+
+// Auto-generated Zod schemas
+export const insertPromptSchema = createInsertSchema(prompts);
+export const selectPromptSchema = createSelectSchema(prompts);
+
+// Repository with full type safety
+export class DrizzlePromptRepository implements PromptRepository {
+  async save(data: CreatePromptArgs): Promise<Prompt> {
+    // Zod validation happens automatically
+    const validated = insertPromptSchema.parse(data);
+    const [result] = await this.db.insert(prompts).values(validated).returning();
+    return selectPromptSchema.parse(result);
+  }
+}
+```
 
 ## Timeline Summary
 
