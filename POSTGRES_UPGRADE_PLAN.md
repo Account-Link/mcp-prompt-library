@@ -256,7 +256,7 @@ POSTGRES_PASSWORD=mcp_password
 POSTGRES_POOL_SIZE=10
 
 # Storage Configuration
-STORAGE_TYPE=postgres  # or 'file' for fallback
+STORAGE_TYPE=postgres
 ```
 
 ### Docker Compose (docker-compose.yml)
@@ -310,7 +310,6 @@ volumes:
 ### Data Safety
 - **Backup Strategy**: Regular PostgreSQL backups
 - **Data Validation**: Comprehensive testing and validation
-- **Rollback Plan**: Keep file storage as fallback option
 
 ### Performance
 - **Connection Pooling**: Prevent connection exhaustion
@@ -332,7 +331,6 @@ volumes:
 2. **Non-Functional Requirements**
    - Database connection stability
    - Query performance under load
-   - Rollback capability
 
 3. **Operational Requirements**
    - Docker container management
