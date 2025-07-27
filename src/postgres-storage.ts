@@ -152,7 +152,7 @@ export class PostgresPromptRepository implements PromptRepository {
     } else {
       const results = await this.client`SELECT * FROM prompts ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}`;
       return await this.loadPromptsWithRelations(results);
-
+    }
   }
 
   async update(id: string, data: UpdatePromptArgs): Promise<Prompt> {
