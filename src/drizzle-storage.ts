@@ -32,6 +32,7 @@ export interface PostgresConfig {
 export class DrizzlePromptRepository implements PromptRepository {
   private db: ReturnType<typeof drizzle>;
   private client: postgres.Sql;
+  private connected = false;
 
   constructor(config: PostgresConfig) {
     if (config.connectionString) {
@@ -41,6 +42,29 @@ export class DrizzlePromptRepository implements PromptRepository {
       this.client = postgres(`postgresql://${user}:${password}@${host}:${port}/${database}`);
     }
     this.db = drizzle(this.client);
+  }
+
+  async connect(): Promise<void> {
+    try {
+      // Test the connection
+      await this.client`SELECT 1`;
+      this.connected = true;
+    } catch (error) {
+      throw new Error(`Failed to connect to database: ${error}`);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      await this.client.end();
+      this.connected = false;
+    } catch (error) {
+      throw new Error(`Failed to disconnect from database: ${error}`);
+    }
+  }
+
+  async isConnected(): Promise<boolean> {
+    return this.connected;
   }
 
   async save(data: CreatePromptArgs): Promise<Prompt> {
@@ -387,6 +411,6 @@ export class DrizzlePromptRepository implements PromptRepository {
   }
 
   async close(): Promise<void> {
-    await this.client.end();
+    await this.disconnect();
   }
 }

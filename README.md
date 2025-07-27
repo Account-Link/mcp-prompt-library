@@ -70,7 +70,10 @@ npm test
 # Run linting
 npm run lint
 
-# Start development server
+# Test MCP server (spawns server once for testing)
+npm run dev:test
+
+# Run server once (for manual testing)
 npm run dev
 
 # Build for production
@@ -80,12 +83,20 @@ npm run build
 ### Usage
 
 ```bash
-# Start the MCP server
+# Start the MCP server (production)
 npm start
 
 # Or with npx
 npx mcp-prompt-mgmt
 ```
+
+### MCP Development Workflow
+
+**Important**: MCP servers are designed to be stateless and spawned fresh for each request. The server should not be kept alive persistently.
+
+- **For testing**: Use `npm run dev:test` to test MCP communication
+- **For manual testing**: Use `npm run dev` to run the server once
+- **For production**: Use `npm start` or `npx mcp-prompt-mgmt`
 
 ## 📋 Implementation Plan
 
