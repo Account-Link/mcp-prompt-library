@@ -20,6 +20,7 @@ src/
 ├── types.ts          # Prompt interface and schemas
 ├── file-storage.ts   # Atomic file operations with locking
 ├── prompt-service.ts # Business logic and validation
+├── template-engine.ts # Variable substitution engine
 ├── mcp-server.ts     # MCP protocol integration
 └── index.ts          # Entry point and server startup
 
@@ -112,7 +113,7 @@ npx mcp-prompt-mgmt
 
 ### Unit Tests
 - File storage operations (atomic writes, locking)
-- Schema validation
+- Schema validation with Zod 3.22.4
 - Template variable substitution
 - Error handling
 - Security (path traversal protection)
@@ -126,18 +127,20 @@ npx mcp-prompt-mgmt
 - **73 tests passing** across all core functionality
 - **100% coverage** for critical paths (file operations)
 - **Security tests** for path traversal protection
+- **Performance**: Tests complete in ~26 seconds
+- **Code Quality**: 0 errors, 12 warnings (acceptable for error handling)
 
 ## 🎯 Success Criteria
 
 A successful implementation will:
 
-1. **Store prompts safely** - No data corruption, atomic operations
-2. **Validate everything** - Reject invalid data with clear errors
-3. **Work with MCP clients** - Claude Desktop, Cursor, etc.
-4. **Have comprehensive tests** - Every feature tested
-5. **Be simple to understand** - Clear, focused codebase
-6. **Be easy to extend** - Well-defined interfaces
-7. **Be secure** - Protected against common attacks
+1. **Store prompts safely** - No data corruption, atomic operations with file locking
+2. **Validate everything** - Reject invalid data with clear errors using Zod schemas
+3. **Work with MCP clients** - Claude Desktop, Cursor, etc. via JSON-RPC
+4. **Have comprehensive tests** - Every feature tested (73 tests passing)
+5. **Be simple to understand** - Clear, focused codebase with minimal dependencies
+6. **Be easy to extend** - Well-defined interfaces and modular architecture
+7. **Be secure** - Protected against path traversal attacks and input validation
 
 ## 🔄 Comparison with Original
 
@@ -148,9 +151,10 @@ A successful implementation will:
 | **REST API** | ❌ Not implemented | ❌ Out of scope |
 | **CLI** | ❌ Not implemented | ✅ Simple CLI |
 | **Testing** | ⚠️ Minimal | ✅ Comprehensive (73 tests) |
-| **Security** | ⚠️ Unknown | ✅ Path traversal protection |
+| **Security** | ⚠️ Unknown | ✅ Path traversal protection, input validation |
 | **Complexity** | 🔴 High | 🟢 Low |
 | **Maintainability** | 🔴 Poor | 🟢 Excellent |
+| **Dependencies** | 🔴 Many | 🟢 Minimal (Zod 3.22.4, MCP SDK) |
 
 ## 📚 MCP Integration
 
@@ -162,6 +166,8 @@ This server implements the Model Context Protocol to provide:
 - `list_prompts` - List all prompts with filtering
 - `update_prompt` - Update an existing prompt
 - `delete_prompt` - Delete a prompt
+- `search_prompts` - Search prompts by content, name, or tags
+- `get_stats` - Get statistics about stored prompts
 - `apply_template` - Apply variables to a template
 
 ### Resources
@@ -175,7 +181,7 @@ Add to your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "prompt-manager": {
+    "mcp-prompt-mgmt": {
       "command": "npx",
       "args": ["mcp-prompt-mgmt"],
       "env": {
