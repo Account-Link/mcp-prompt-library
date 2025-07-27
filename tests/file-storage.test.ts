@@ -382,4 +382,41 @@ describe('FilePromptRepository', () => {
       expect(healthy).toBe(false);
     });
   });
+
+  describe('Security', () => {
+    it('should sanitize path traversal attempts', async () => {
+      const maliciousId = '../../../etc/passwd';
+      const prompt = await repository.save({
+        name: 'Security Test',
+        content: 'Test content',
+        isTemplate: false,
+      });
+
+      // Try to access with malicious ID
+      const result = await repository.getById(maliciousId);
+      expect(result).toBeNull();
+
+      // Verify the actual prompt is still accessible
+      const actualPrompt = await repository.getById(prompt.id);
+      expect(actualPrompt).toBeDefined();
+      expect(actualPrompt?.name).toBe('Security Test');
+    });
+
+    it('should handle special characters in IDs', async () => {
+      const specialId = 'test<>:"|?*\x00-\x1f';
+      const prompt = await repository.save({
+        name: 'Special Chars Test',
+        content: 'Test content',
+        isTemplate: false,
+      });
+
+      // Try to access with special characters
+      const result = await repository.getById(specialId);
+      expect(result).toBeNull();
+
+      // Verify the actual prompt is still accessible
+      const actualPrompt = await repository.getById(prompt.id);
+      expect(actualPrompt).toBeDefined();
+    });
+  });
 }); 

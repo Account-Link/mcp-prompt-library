@@ -240,7 +240,8 @@ export class FilePromptRepository implements PromptRepository {
     await this.ensureConnected();
     
     try {
-      const promptDir = path.join(this.promptsDir, id);
+      const sanitizedId = this.sanitizePathComponent(id);
+      const promptDir = path.join(this.promptsDir, sanitizedId);
       const files = await fsp.readdir(promptDir);
       
       return files
@@ -358,8 +359,21 @@ export class FilePromptRepository implements PromptRepository {
     }
   }
 
+  private sanitizePathComponent(component: string): string {
+    // Remove any path traversal sequences and dangerous characters
+    return component
+      .replace(/[<>:"|?*\x00-\x1f]/g, '') // Remove invalid filename characters
+      .replace(/\.\./g, '') // Remove directory traversal
+      .replace(/^[\/\\]+/, '') // Remove leading slashes
+      .replace(/[\/\\]+$/, '') // Remove trailing slashes
+      .replace(/[\/\\]+/g, '-') // Replace path separators with hyphens
+      .substring(0, 100); // Limit length
+  }
+
   private getPromptPath(id: string, version: number): string {
-    return path.join(this.promptsDir, id, `${version}.json`);
+    const sanitizedId = this.sanitizePathComponent(id);
+    const sanitizedVersion = this.sanitizePathComponent(version.toString());
+    return path.join(this.promptsDir, sanitizedId, `${sanitizedVersion}.json`);
   }
 
   private generateId(name: string): string {
