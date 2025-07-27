@@ -33,6 +33,23 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
     this.db = drizzle(this.client);
   }
 
+  async connect(): Promise<void> {
+    try {
+      // Test the connection
+      await this.client`SELECT 1`;
+    } catch (error) {
+      throw new Error(`Failed to connect to database: ${error}`);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      await this.client.end();
+    } catch (error) {
+      throw new Error(`Failed to disconnect from database: ${error}`);
+    }
+  }
+
   async save(data: CreatePromptArgs): Promise<Prompt> {
     const now = new Date();
     const id = this.generateId(data.name);

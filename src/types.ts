@@ -83,6 +83,8 @@ export const listPromptsSchema = z.object({
 
 // Repository interface
 export interface PromptRepository {
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
   save(prompt: z.infer<typeof createPromptSchema>): Promise<Prompt>;
   getById(id: string, version?: number): Promise<Prompt | null>;
   list(options?: z.infer<typeof listPromptsSchema>): Promise<Prompt[]>;

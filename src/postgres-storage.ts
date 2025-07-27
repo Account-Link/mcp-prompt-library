@@ -22,6 +22,23 @@ export class PostgresPromptRepository implements PromptRepository {
     }
   }
 
+  async connect(): Promise<void> {
+    try {
+      // Test the connection
+      await this.client`SELECT 1`;
+    } catch (error) {
+      throw new Error(`Failed to connect to database: ${error}`);
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      await this.client.end();
+    } catch (error) {
+      throw new Error(`Failed to disconnect from database: ${error}`);
+    }
+  }
+
   async save(data: CreatePromptArgs): Promise<Prompt> {
     const now = new Date();
     const id = this.generateId(data.name);
@@ -297,12 +314,18 @@ export class PostgresPromptRepository implements PromptRepository {
       const tagId = tag?.id || (await db`SELECT id FROM tags WHERE name = ${tagName}`)[0]?.id;
 
       if (tagId) {
-        // Create prompt-tag relationship
-        await db`
-          INSERT INTO prompt_tags (prompt_id, tag_id) 
-          VALUES (${promptId}, ${tagId}) 
-          ON CONFLICT (prompt_id, tag_id) DO NOTHING
-        `;
+        // Create prompt-tag relationship (ignore if already exists)
+        try {
+          await db`
+            INSERT INTO prompt_tags (prompt_id, tag_id) 
+            VALUES (${promptId}, ${tagId})
+          `;
+        } catch (error: any) {
+          // Ignore unique constraint violations
+          if (error.code !== '23505') {
+            throw error;
+          }
+        }
       }
     }
   }

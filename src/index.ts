@@ -3,12 +3,19 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { pino } from 'pino';
 import { FilePromptRepository } from './file-storage.js';
+import { PostgresPromptRepository } from './postgres-storage.js';
 import { PromptService } from './prompt-service.js';
 import { McpPromptServer } from './mcp-server.js';
 
 // Configuration
 const PROMPTS_DIR = process.env.PROMPTS_DIR || './prompts';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const USE_POSTGRES = process.env.USE_POSTGRES !== 'false'; // Default to true
+const POSTGRES_HOST = process.env.POSTGRES_HOST || 'localhost';
+const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT || '5433', 10);
+const POSTGRES_DB = process.env.POSTGRES_DB || 'mcp_prompts';
+const POSTGRES_USER = process.env.POSTGRES_USER || 'mcp_user';
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'mcp_password_123';
 
 // Logger
 const logger = pino({
@@ -26,12 +33,31 @@ const logger = pino({
 async function main() {
   try {
     logger.info('Starting MCP Prompt Manager...');
-    logger.info(`Prompts directory: ${PROMPTS_DIR}`);
-
-    // Initialize components
-    const repository = new FilePromptRepository({ promptsDir: PROMPTS_DIR });
-    await repository.connect();
-    logger.info('Connected to file storage');
+    
+    // Initialize repository based on configuration
+    let repository;
+    if (USE_POSTGRES) {
+      logger.info('Using PostgreSQL storage');
+      logger.info(`PostgreSQL config: ${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`);
+      
+      repository = new PostgresPromptRepository({
+        host: POSTGRES_HOST,
+        port: POSTGRES_PORT,
+        database: POSTGRES_DB,
+        user: POSTGRES_USER,
+        password: POSTGRES_PASSWORD,
+      });
+      
+      await repository.connect();
+      logger.info('Connected to PostgreSQL');
+    } else {
+      logger.info('Using file storage');
+      logger.info(`Prompts directory: ${PROMPTS_DIR}`);
+      
+      repository = new FilePromptRepository({ promptsDir: PROMPTS_DIR });
+      await repository.connect();
+      logger.info('Connected to file storage');
+    }
 
     const promptService = new PromptService(repository);
     const mcpServer = new McpPromptServer(promptService);
