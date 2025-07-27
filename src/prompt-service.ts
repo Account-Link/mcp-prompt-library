@@ -14,7 +14,7 @@ import { defaultTemplateEngine } from './template-engine.js';
 export class PromptService {
   constructor(
     private repository: PromptRepository,
-    private templateEngine: TemplateEngine = defaultTemplateEngine
+    private _templateEngine: TemplateEngine = defaultTemplateEngine
   ) {}
 
   /**
@@ -73,7 +73,7 @@ export class PromptService {
       throw new ValidationError(`Prompt '${prompt.name}' is not a template`);
     }
 
-    return this.templateEngine.applyTemplate(
+    return this._templateEngine.applyTemplate(
       prompt.content,
       args.variables
     );

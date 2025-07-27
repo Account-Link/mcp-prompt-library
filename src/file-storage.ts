@@ -77,8 +77,12 @@ export class FilePromptRepository implements PromptRepository {
     const version = 1;
     
     const prompt: Prompt = {
-      ...validated,
       id,
+      name: validated.name,
+      content: validated.content,
+      isTemplate: validated.isTemplate,
+      variables: validated.variables,
+      tags: validated.tags,
       createdAt: now,
       updatedAt: now,
       version,
@@ -199,13 +203,15 @@ export class FilePromptRepository implements PromptRepository {
 
     // Create updated prompt
     const updated: Prompt = {
-      ...current,
-      ...validated,
-      id, // Ensure ID doesn't change
-      version: current.version + 1,
-      updatedAt: new Date(),
+      id: current.id,
       name: validated.name ?? current.name,
       content: validated.content ?? current.content,
+      isTemplate: validated.isTemplate ?? current.isTemplate,
+      variables: validated.variables ?? current.variables,
+      tags: validated.tags ?? current.tags,
+      createdAt: current.createdAt,
+      updatedAt: new Date(),
+      version: current.version + 1,
       ...(validated.description !== undefined && { description: validated.description }),
       ...(validated.category !== undefined && { category: validated.category }),
       ...(validated.metadata !== undefined && { metadata: validated.metadata }),
