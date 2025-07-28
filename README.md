@@ -52,7 +52,34 @@ tests/
 
 ## 🚀 Quick Start
 
-### Installation
+### Option 1: Docker (Recommended)
+
+The easiest way to run the MCP Prompt Library is using Docker:
+
+```bash
+# Clone the repository
+git clone <repository>
+cd mcp-prompt-library
+
+# Start the services (PostgreSQL + MCP Server)
+docker-compose up -d
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs mcp-server
+docker-compose logs postgres
+
+# Stop services
+docker-compose down
+```
+
+The MCP server will be available at `http://localhost:8080/mcp` for HTTP clients.
+
+### Option 2: Local Development
+
+For development and testing:
 
 ```bash
 cd mcp-prompt-library
@@ -128,6 +155,18 @@ npx mcp-prompt-library
 - **For testing**: Use `npm run dev:test` to test MCP communication
 - **For manual testing**: Use `npm run dev` to run the server once
 - **For production**: Use `npm start` or `npx mcp-prompt-library`
+
+### Docker vs Local Development
+
+| Use Case | Docker | Local |
+|----------|--------|-------|
+| **Production deployment** | ✅ Recommended | ❌ Not recommended |
+| **HTTP API access** | ✅ Available at `http://localhost:8080/mcp` | ❌ Stdio only |
+| **Development/testing** | ⚠️ Slower rebuilds | ✅ Faster iteration |
+| **Cursor MCP integration** | ❌ Not compatible | ✅ Works perfectly |
+| **Database persistence** | ✅ Automatic setup | ⚠️ Manual setup required |
+
+**Note**: Cursor's MCP client expects stdio transport, so use local development for Cursor integration.
 
 ## 📋 Implementation Plan
 
@@ -218,29 +257,38 @@ This server implements the Model Context Protocol to provide:
 
 ### Configuration
 
+#### For Cursor (Local Development)
+
 Add to your MCP client configuration:
 
 ```json
 {
   "mcpServers": {
     "mcp-prompt-library": {
-      "command": "npx",
-      "args": ["mcp-prompt-library"],
-      "env": {
-        "PROMPTS_DIR": "./prompts"
-      }
+      "command": "node",
+      "args": ["/path/to/mcp-prompt-library/dist/index.js"],
+      "cwd": "/path/to/mcp-prompt-library"
     }
   }
 }
 ```
 
+#### For HTTP Clients (Docker)
+
+The containerized server is available at `http://localhost:8080/mcp` and accepts standard MCP JSON-RPC requests.
+
+**Note**: Cursor's MCP client doesn't support HTTP transport, so use the local stdio configuration for Cursor integration.
+
 ## 🛠️ Development
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18+ (for local development)
+- Docker and Docker Compose (for containerized deployment)
 - npm or pnpm
 
 ### Setup
+
+#### Local Development
 ```bash
 git clone <repository>
 cd mcp-prompt-library
@@ -248,11 +296,60 @@ npm install
 npm test
 ```
 
+#### Docker Development
+```bash
+git clone <repository>
+cd mcp-prompt-library
+
+# Build and start services
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f mcp-server
+
+# Rebuild after changes
+docker-compose build mcp-server
+docker-compose up -d
+```
+
 ### Adding Features
 1. Write tests first
 2. Implement the feature
 3. Ensure all tests pass
 4. Update documentation
+
+### Docker Troubleshooting
+
+#### Verify Container Status
+```bash
+# Check if containers are running
+docker-compose ps
+
+# Check container logs
+docker-compose logs mcp-server
+docker-compose logs postgres
+
+# Check container health
+docker exec mcp-prompt-server ps aux
+```
+
+#### Common Issues
+
+1. **Port conflicts**: Ensure ports 8080 and 5433 are available
+2. **Database connection**: Check if PostgreSQL container is healthy
+3. **Build issues**: Rebuild with `docker-compose build --no-cache mcp-server`
+
+#### Reset Everything
+```bash
+# Stop and remove everything
+docker-compose down -v
+
+# Remove all images
+docker rmi mcp-prompt-library-mcp-server
+
+# Start fresh
+docker-compose up -d --build
+```
 
 ## 📄 License
 
