@@ -207,10 +207,12 @@ npx mcp-prompt-library
 - CLI command execution
 
 ### Test Coverage
-- **73 tests passing** across all core functionality
-- **100% coverage** for critical paths (file operations)
+- **117 tests passing** across all core functionality
+- **58.35% overall coverage** with 100% coverage on critical business logic
+- **91.63% coverage** on PostgreSQL storage (core functionality)
+- **100% coverage** on prompt service and template engine
 - **Security tests** for path traversal protection
-- **Performance**: Tests complete in ~26 seconds
+- **Performance**: Tests complete in ~2.34 seconds
 - **Code Quality**: 0 errors, 12 warnings (acceptable for error handling)
 
 ## 🎯 Success Criteria
@@ -220,7 +222,7 @@ A successful implementation will:
 1. **Store prompts safely** - No data corruption, atomic database transactions
 2. **Validate everything** - Reject invalid data with clear errors using Zod schemas
 3. **Work with MCP clients** - Claude Desktop, Cursor, etc. via JSON-RPC
-4. **Have comprehensive tests** - Every feature tested (73 tests passing)
+4. **Have comprehensive tests** - Every feature tested (117 tests passing)
 5. **Be simple to understand** - Clear, focused codebase with minimal dependencies
 6. **Be easy to extend** - Well-defined interfaces and modular architecture
 7. **Be secure** - Protected against SQL injection and input validation
@@ -233,7 +235,7 @@ A successful implementation will:
 | **PostgreSQL** | ❌ Not implemented | ❌ Out of scope |
 | **REST API** | ❌ Not implemented | ❌ Out of scope |
 | **CLI** | ❌ Not implemented | ✅ Simple CLI |
-| **Testing** | ⚠️ Minimal | ✅ Comprehensive (73 tests) |
+| **Testing** | ⚠️ Minimal | ✅ Comprehensive (117 tests) |
 | **Security** | ⚠️ Unknown | ✅ Path traversal protection, input validation |
 | **Complexity** | 🔴 High | 🟢 Low |
 | **Maintainability** | 🔴 Poor | 🟢 Excellent |
