@@ -20,6 +20,30 @@ services:
       timeout: 5s
       retries: 5
 
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp-prompt-server
+    ports:
+      - "8080:8080"  # Expose HTTP port
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=mcp_prompts
+      - POSTGRES_USER=mcp_user
+      - POSTGRES_PASSWORD=mcp_password_123
+      - NODE_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "mcp-proxy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 secrets:
   postgres_password:
     file: ./secrets/postgres_password.txt  # Not in version control
