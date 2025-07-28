@@ -466,5 +466,4 @@ describe('McpPromptServer', () => {
       expect(closeSpy).toHaveBeenCalled();
     });
   });
-}); 
-}); 
+});

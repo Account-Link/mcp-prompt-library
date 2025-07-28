@@ -6,7 +6,7 @@ import type { CreatePromptArgs, UpdatePromptArgs, ListPromptsArgs, Prompt } from
 const TEST_CONFIG = {
   host: 'localhost',
   port: 5433,
-  database: 'mcp_prompts_test',
+  database: 'mcp_prompts',
   user: 'mcp_user',
   password: 'mcp_password_123',
 };
