@@ -4,12 +4,12 @@ A **simple, focused prompt manager** built on the Model Context Protocol (MCP). 
 
 ## 🎯 Motivation
 
-The original MCP Prompts project is ambitious but over-engineered. It promises enterprise features but delivers a complex codebase with many unimplemented components. This project aims to:
+The original MCP Prompts project offers many features but has grown complex over time. This project takes a different approach by focusing on the core functionality that users actually need:
 
-- **Extract the working core** - file storage with atomic operations
+- **Extract the working core** - reliable storage with atomic operations
 - **Focus on simplicity** - do one thing well
 - **Ensure test coverage** - every feature has working tests
-- **Provide clear value** - a prompt manager that actually works
+- **Provide clear value** - a prompt manager that's easy to understand and use
 
 ## 🏗️ Architecture
 
