@@ -7,7 +7,6 @@ export interface Prompt {
   content: string;
   description: string | null;
   isTemplate: boolean;
-  variables: string[];
   tags: string[];
   category: string | null;
   metadata: Record<string, unknown> | null;
@@ -31,7 +30,6 @@ export const createPromptSchema = z.object({
     .nullable()
     .default(null),
   isTemplate: z.boolean().default(false),
-  variables: z.array(z.string().min(1)).default([]),
   tags: z.array(z.string().min(1)).default([]),
   category: z.string().nullable().default(null),
   metadata: z.record(z.string(), z.unknown()).nullable().default(null),
@@ -56,7 +54,6 @@ export const updatePromptSchema = z.object({
     .nullable()
     .optional(),
   isTemplate: z.boolean().optional(),
-  variables: z.array(z.string().min(1)).optional(),
   tags: z.array(z.string().min(1)).optional(),
   category: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -93,32 +90,19 @@ export interface PromptRepository {
 // Template engine interface
 export interface TemplateEngine {
   applyTemplate(content: string, variables: Record<string, string>): string;
-  extractVariables(content: string): string[];
-  validateVariables(content: string, providedVariables: Record<string, string>): {
-    valid: boolean;
-    missing: string[];
-    extra: string[];
-  };
 }
 
 // Error types
-export class PromptError extends Error {
-  constructor(message: string, public code: string) {
-    super(message);
-    this.name = 'PromptError';
-  }
-}
-
-export class ValidationError extends PromptError {
+export class ValidationError extends Error {
   constructor(message: string) {
-    super(message, 'VALIDATION_ERROR');
+    super(message);
     this.name = 'ValidationError';
   }
 }
 
-export class NotFoundError extends PromptError {
+export class NotFoundError extends Error {
   constructor(resource: string, id: string) {
-    super(`${resource} with id '${id}' not found`, 'NOT_FOUND');
+    super(`${resource} with id '${id}' not found`);
     this.name = 'NotFoundError';
   }
 }

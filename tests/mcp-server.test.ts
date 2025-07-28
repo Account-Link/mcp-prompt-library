@@ -39,7 +39,6 @@ describe('McpPromptServer', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['test'],
-        variables: [],
         category: 'test',
         metadata: null,
         createdAt: new Date(),
@@ -57,7 +56,6 @@ describe('McpPromptServer', () => {
         isTemplate: false,
         tags: ['test'],
         category: 'test',
-        variables: [],
         metadata: null,
       });
 
@@ -68,7 +66,6 @@ describe('McpPromptServer', () => {
         isTemplate: false,
         tags: ['test'],
         category: 'test',
-        variables: [],
         metadata: null,
       });
 
@@ -83,7 +80,6 @@ describe('McpPromptServer', () => {
         content: 'Test content',
         isTemplate: false,
         tags: [],
-        variables: [],
         metadata: null,
       })).rejects.toThrow('Validation failed');
     });
@@ -96,7 +92,6 @@ describe('McpPromptServer', () => {
         content: 'Test content',
         isTemplate: false,
         tags: [],
-        variables: [],
         metadata: null,
       })).rejects.toThrow('Database connection failed');
     });
@@ -111,7 +106,6 @@ describe('McpPromptServer', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['test'],
-        variables: [],
         category: 'test',
         metadata: null,
         createdAt: new Date(),
@@ -142,7 +136,6 @@ describe('McpPromptServer', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['test'],
-        variables: [],
         category: 'test',
         metadata: null,
         createdAt: new Date(),
@@ -169,7 +162,6 @@ describe('McpPromptServer', () => {
           description: 'Test description 1',
           isTemplate: false,
           tags: ['test'],
-          variables: [],
           category: 'test',
           metadata: null,
           createdAt: new Date(),
@@ -183,7 +175,6 @@ describe('McpPromptServer', () => {
           description: 'Test description 2',
           isTemplate: true,
           tags: ['template'],
-          variables: ['var1'],
           category: 'template',
           metadata: null,
           createdAt: new Date(),
@@ -232,7 +223,6 @@ describe('McpPromptServer', () => {
         description: 'Updated description',
         isTemplate: false,
         tags: ['updated'],
-        variables: ['var1'],
         category: 'updated',
         metadata: null,
         createdAt: new Date(),
@@ -247,7 +237,6 @@ describe('McpPromptServer', () => {
         content: 'Updated content',
         description: 'Updated description',
         tags: ['updated'],
-        variables: ['var1'],
         category: 'updated',
       });
 
@@ -256,7 +245,6 @@ describe('McpPromptServer', () => {
         content: 'Updated content',
         description: 'Updated description',
         tags: ['updated'],
-        variables: ['var1'],
         category: 'updated',
       });
       expect(result).toEqual(updatedPrompt);
@@ -270,7 +258,6 @@ describe('McpPromptServer', () => {
         content: 'Updated content',
         isTemplate: false,
         tags: [],
-        variables: [],
         metadata: null,
       })).rejects.toThrow('Concurrent modification');
     });
@@ -350,7 +337,6 @@ describe('McpPromptServer', () => {
           description: 'Description',
           isTemplate: false,
           tags: ['search'],
-          variables: [],
           category: 'test',
           metadata: null,
           createdAt: new Date(),

@@ -11,7 +11,6 @@ describe('Error Handling', () => {
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe("Prompt with id '123' not found");
       expect(error.name).toBe('NotFoundError');
-      expect(error.code).toBe('NOT_FOUND');
     });
 
     it('should create NotFoundError with resource and id', () => {
@@ -20,7 +19,6 @@ describe('Error Handling', () => {
 
       // Assert
       expect(error.message).toBe("User with id '456' not found");
-      expect(error.code).toBe('NOT_FOUND');
     });
   });
 
@@ -33,7 +31,6 @@ describe('Error Handling', () => {
       expect(error).toBeInstanceOf(Error);
       expect(error.message).toBe('Invalid input data');
       expect(error.name).toBe('ValidationError');
-      expect(error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should create ValidationError with custom message', () => {
@@ -42,7 +39,6 @@ describe('Error Handling', () => {
 
       // Assert
       expect(error.message).toBe('Custom validation error');
-      expect(error.code).toBe('VALIDATION_ERROR');
     });
   });
 

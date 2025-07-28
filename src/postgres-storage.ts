@@ -45,23 +45,21 @@ export class PostgresPromptRepository implements PromptRepository {
     
     // Insert main prompt
     const [prompt] = await this.client`
-      INSERT INTO prompts (id, name, content, description, is_template, variables, category, metadata, created_at, updated_at, version)
-      VALUES (${id}, ${data.name}, ${data.content}, ${data.description || null}, ${data.isTemplate}, ${data.variables || []}, ${data.category || null}, ${data.metadata ? JSON.stringify(data.metadata) : null}, ${now}, ${now}, 1)
+      INSERT INTO prompts (id, name, content, description, is_template, category, metadata, created_at, updated_at, version)
+      VALUES (${id}, ${data.name}, ${data.content}, ${data.description || null}, ${data.isTemplate}, ${data.category || null}, ${data.metadata ? JSON.stringify(data.metadata) : null}, ${now}, ${now}, 1)
       RETURNING *
     `;
     
     // Insert version record
     await this.client`
-      INSERT INTO prompt_versions (id, version, name, content, description, is_template, variables, category, metadata, created_at, updated_at)
-      VALUES (${prompt.id}, ${prompt.version}, ${prompt.name}, ${prompt.content}, ${prompt.description}, ${prompt.is_template}, ${prompt.variables}, ${prompt.category}, ${prompt.metadata}, ${prompt.created_at}, ${prompt.updated_at})
+      INSERT INTO prompt_versions (id, version, name, content, description, is_template, category, metadata, created_at, updated_at)
+      VALUES (${prompt.id}, ${prompt.version}, ${prompt.name}, ${prompt.content}, ${prompt.description}, ${prompt.is_template}, ${prompt.category}, ${prompt.metadata}, ${prompt.created_at}, ${prompt.updated_at})
     `;
 
     // Handle tags if provided
     if (data.tags && data.tags.length > 0) {
       await this.saveTags(this.client, prompt.id, data.tags);
     }
-
-
 
     // Return complete prompt with tags and variables
     const result = await this.getByIdInternal(this.client, prompt.id);
@@ -90,7 +88,6 @@ export class PostgresPromptRepository implements PromptRepository {
         content: result.content,
         description: result.description,
         isTemplate: result.is_template,
-        variables: result.variables || [],
         tags,
         category: result.category,
         metadata: result.metadata ? JSON.parse(result.metadata) : null,
@@ -120,7 +117,6 @@ export class PostgresPromptRepository implements PromptRepository {
         content: result.content,
         description: result.description,
         isTemplate: result.is_template,
-        variables: result.variables || [],
         tags,
         category: result.category,
         metadata: result.metadata ? JSON.parse(result.metadata) : null,
@@ -204,10 +200,6 @@ export class PostgresPromptRepository implements PromptRepository {
       updateParts.push(`is_template = $${updateParams.length + 1}`);
       updateParams.push(data.isTemplate);
     }
-    if (data.variables !== undefined) {
-      updateParts.push(`variables = $${updateParams.length + 1}`);
-      updateParams.push(data.variables);
-    }
     if (data.category !== undefined) {
       updateParts.push(`category = $${updateParams.length + 1}`);
       updateParams.push(data.category);
@@ -230,8 +222,8 @@ export class PostgresPromptRepository implements PromptRepository {
 
     // Save version record
     await this.client`
-      INSERT INTO prompt_versions (id, version, name, content, description, is_template, variables, category, metadata, created_at, updated_at)
-      VALUES (${updated.id}, ${updated.version}, ${updated.name}, ${updated.content}, ${updated.description}, ${updated.is_template}, ${updated.variables}, ${updated.category}, ${updated.metadata}, ${updated.created_at}, ${updated.updated_at})
+      INSERT INTO prompt_versions (id, version, name, content, description, is_template, category, metadata, created_at, updated_at)
+      VALUES (${updated.id}, ${updated.version}, ${updated.name}, ${updated.content}, ${updated.description}, ${updated.is_template}, ${updated.category}, ${updated.metadata}, ${updated.created_at}, ${updated.updated_at})
     `;
 
     // Handle tags if provided
@@ -357,7 +349,6 @@ export class PostgresPromptRepository implements PromptRepository {
           content: prompt.content,
           description: prompt.description,
           isTemplate: prompt.is_template,
-          variables: prompt.variables || [],
           tags,
           category: prompt.category,
           metadata: prompt.metadata ? JSON.parse(prompt.metadata) : null,

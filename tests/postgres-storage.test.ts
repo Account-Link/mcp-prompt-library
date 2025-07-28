@@ -61,7 +61,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['test', 'integration'],
-        variables: ['name', 'email'],
         category: 'test',
         metadata: { author: 'test-user' },
       };
@@ -75,7 +74,6 @@ describe('PostgresPromptRepository', () => {
       expect(result.description).toBe('Test description');
       expect(result.isTemplate).toBe(false);
       expect(result.tags).toEqual(['test', 'integration']);
-      expect(result.variables).toEqual(['name', 'email']);
       expect(result.category).toBe('test');
       expect(result.metadata).toEqual({ author: 'test-user' });
       expect(result.version).toBe(1);
@@ -88,7 +86,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['retrieve'],
-        variables: [],
         category: 'test',
       };
 
@@ -114,7 +111,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Test description',
         isTemplate: false,
         tags: ['version'],
-        variables: [],
         category: 'test',
       };
 
@@ -147,7 +143,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description 1',
         isTemplate: false,
         tags: ['test', 'filter'],
-        variables: [],
         category: 'test',
       });
 
@@ -157,7 +152,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description 2',
         isTemplate: true,
         tags: ['test', 'template'],
-        variables: ['name'],
         category: 'production',
       });
 
@@ -167,7 +161,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description 3',
         isTemplate: false,
         tags: ['other'],
-        variables: [],
         category: 'other',
       });
 
@@ -198,7 +191,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Original description',
         isTemplate: false,
         tags: ['update'],
-        variables: [],
         category: 'test',
       };
 
@@ -236,7 +228,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: ['delete'],
-        variables: ['var1'],
         category: 'test',
       };
 
@@ -262,7 +253,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: ['version-delete'],
-        variables: [],
         category: 'test',
       };
 
@@ -301,7 +291,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: ['version-list'],
-        variables: [],
         category: 'test',
       };
 
@@ -350,7 +339,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: ['test'],
-        variables: [],
         category: 'test',
         // Add invalid data that would cause database errors
       } as CreatePromptArgs;
@@ -375,7 +363,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: ['test'],
-        variables: [],
         category: 'test',
       };
 
@@ -391,7 +378,6 @@ describe('PostgresPromptRepository', () => {
         description: 'Description',
         isTemplate: false,
         tags: [],
-        variables: [],
         category: 'test',
       };
 
