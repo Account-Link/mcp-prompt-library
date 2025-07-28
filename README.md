@@ -287,7 +287,7 @@ The containerized server is available at `http://localhost:8080/mcp` and accepts
 ## 🛠️ Development
 
 ### Prerequisites
-- Node.js 18+ (for local development)
+- Node.js 20+ (for local development)
 - Docker and Docker Compose (for containerized deployment)
 - npm or pnpm
 
