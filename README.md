@@ -165,10 +165,10 @@ npx mcp-prompt-library
 | **Production deployment** | ✅ Recommended | ❌ Not recommended |
 | **HTTP API access** | ✅ Available at `http://localhost:8080/mcp` | ❌ Stdio only |
 | **Development/testing** | ⚠️ Slower rebuilds | ✅ Faster iteration |
-| **Cursor MCP integration** | ❌ Not compatible | ✅ Works perfectly |
+| **Cursor MCP integration** | ✅ Works perfectly | ✅ Works perfectly |
 | **Database persistence** | ✅ Automatic setup | ⚠️ Manual setup required |
 
-**Note**: Cursor's MCP client expects stdio transport, so use local development for Cursor integration.
+**Note**: Both Docker and local development work well with Cursor's MCP client.
 
 ## 📋 Implementation Plan
 
@@ -279,7 +279,7 @@ Add to your MCP client configuration:
 
 The containerized server is available at `http://localhost:8080/mcp` and accepts standard MCP JSON-RPC requests.
 
-**Note**: Cursor's MCP client doesn't support HTTP transport, so use the local stdio configuration for Cursor integration.
+**Note**: Both Docker and local development configurations work well with Cursor's MCP client.
 
 ## 🛠️ Development
 
