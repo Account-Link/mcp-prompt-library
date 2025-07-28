@@ -10,12 +10,19 @@ describe('PostgresPromptRepository', () => {
   beforeEach(async () => {
     repository = testDbManager.getRepository();
     
+    // Ensure we have a fresh connection
+    await repository.connect();
+    
     // Clean up test data
     await testDbManager.cleanupTestData();
   });
 
   afterEach(async () => {
+    // Clean up test data first
     await testDbManager.cleanupTestData();
+    
+    // Don't disconnect here - let the global teardown handle it
+    // This prevents connection issues between tests
   });
 
 
@@ -321,10 +328,13 @@ describe('PostgresPromptRepository', () => {
     });
 
     it('should return false when database is down', async () => {
-      await repository.disconnect();
+      // Create a separate repository instance for this test
+      const testRepo = new PostgresPromptRepository(TEST_DB_CONFIG);
+      await testRepo.connect();
+      await testRepo.disconnect();
       
       // This should fail since we're disconnected
-      const healthy = await repository.healthCheck();
+      const healthy = await testRepo.healthCheck();
       expect(healthy).toBe(false);
     });
   });
@@ -354,7 +364,10 @@ describe('PostgresPromptRepository', () => {
     });
 
     it('should handle connection errors during operations', async () => {
-      await repository.disconnect();
+      // Create a separate repository instance for this test
+      const testRepo = new PostgresPromptRepository(TEST_DB_CONFIG);
+      await testRepo.connect();
+      await testRepo.disconnect();
       
       const promptData: CreatePromptArgs = {
         name: 'Connection Test',
@@ -366,7 +379,7 @@ describe('PostgresPromptRepository', () => {
         category: 'test',
       };
 
-      await expect(repository.save(promptData)).rejects.toThrow();
+      await expect(testRepo.save(promptData)).rejects.toThrow();
     });
   });
 
@@ -388,6 +401,13 @@ describe('PostgresPromptRepository', () => {
       expect(result1.id).toMatch(/^consistent-id-test-/);
       expect(result2.id).toMatch(/^consistent-id-test-/);
       expect(result1.id).not.toBe(result2.id); // Should be unique
+      
+      // Verify the IDs are different by checking the timestamp/random parts
+      const parts1 = result1.id.split('-');
+      const parts2 = result2.id.split('-');
+      expect(parts1.length).toBeGreaterThan(2);
+      expect(parts2.length).toBeGreaterThan(2);
+      expect(parts1.slice(1)).not.toEqual(parts2.slice(1)); // Timestamp and random parts should differ
     });
   });
 }); 

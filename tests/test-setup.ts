@@ -7,6 +7,7 @@ const execAsync = promisify(exec);
 
 export class TestDatabaseManager {
   private repository: PostgresPromptRepository | null = null;
+  private isConnected = false;
 
   constructor() {
     // Don't create repository in constructor to avoid connection issues
@@ -45,6 +46,10 @@ export class TestDatabaseManager {
 
   async stopTestDatabase(): Promise<void> {
     try {
+      console.log('Stopping test database...');
+      // Ensure we're disconnected before cleanup
+      await this.disconnect();
+      
       console.log('Cleaning up test database...');
       // Drop the test database
       await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "DROP DATABASE IF EXISTS mcp_prompts_test;"`);
@@ -59,28 +64,40 @@ export class TestDatabaseManager {
     if (!this.repository) {
       this.repository = new PostgresPromptRepository(TEST_DB_CONFIG);
     }
-    await this.repository.connect();
+    if (!this.isConnected) {
+      await this.repository.connect();
+      this.isConnected = true;
+    }
   }
 
   async disconnect(): Promise<void> {
-    if (this.repository) {
-      await this.repository.disconnect();
+    if (this.repository && this.isConnected) {
+      try {
+        await this.repository.disconnect();
+      } catch (error) {
+        // Ignore disconnect errors as they might be expected
+        console.warn('Disconnect warning:', error);
+      }
       this.repository = null;
+      this.isConnected = false;
     }
   }
 
   async cleanupTestData(): Promise<void> {
-    if (!this.repository) {
+    if (!this.repository || !this.isConnected) {
       return;
     }
     try {
       const client = (this.repository as any).client;
+      // Clean up in the correct order to respect foreign key constraints
       await client`DELETE FROM prompt_versions`;
       await client`DELETE FROM prompt_tags`;
       await client`DELETE FROM prompt_variables`;
       await client`DELETE FROM prompts`;
+      // Also clean up orphaned tags
+      await client`DELETE FROM tags WHERE id NOT IN (SELECT DISTINCT tag_id FROM prompt_tags)`;
     } catch (error) {
-      // Ignore cleanup errors
+      // Ignore cleanup errors but log them
       console.warn('Cleanup warning:', error);
     }
   }
