@@ -59,11 +59,44 @@ cd mcp-prompt-mgmt
 npm install
 ```
 
+### Test Database Setup
+
+The project uses a separate test database in the same PostgreSQL container to avoid affecting your actual prompts during testing:
+
+- **Test Database**: `mcp_prompts_test` (same container as main database)
+- **Main Database**: `mcp_prompts` (same container as test database)
+
+The test database uses the exact same schema as the main database and is automatically managed by the test runner, but you can also manage it manually:
+
+```bash
+# Set up test database manually
+npm run test:db:setup
+
+# Check test database status
+npm run test:db:status
+
+# Clean test database (removes test database)
+npm run test:db:clean
+```
+
+**Note**: Your actual prompts are stored in the main database and are completely isolated from tests.
+
 ### Development
 
 ```bash
-# Run tests
+# Run tests (uses separate test database)
 npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Test database management
+npm run test:db:setup    # Set up test database
+npm run test:db:status   # Check test database status
+npm run test:db:clean    # Clean test database
 
 # Run linting
 npm run lint

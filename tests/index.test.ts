@@ -219,7 +219,7 @@ describe('Application Entry Point', () => {
     it('should initialize repository with correct config', () => {
       const config = {
         host: 'localhost',
-        port: 5433,
+        port: 5434,
         database: 'mcp_prompts_test',
         user: 'mcp_user',
         password: 'mcp_password_123',

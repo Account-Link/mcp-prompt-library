@@ -1,56 +1,28 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PostgresPromptRepository } from '../src/postgres-storage.js';
 import type { CreatePromptArgs, UpdatePromptArgs, ListPromptsArgs, Prompt } from '../src/types.js';
-
-// Test database configuration
-const TEST_CONFIG = {
-  host: 'localhost',
-  port: 5433,
-  database: 'mcp_prompts',
-  user: 'mcp_user',
-  password: 'mcp_password_123',
-};
+import { testDbManager } from './test-setup.js';
+import { TEST_DB_CONFIG } from './test-config.js';
 
 describe('PostgresPromptRepository', () => {
   let repository: PostgresPromptRepository;
 
-  beforeAll(async () => {
-    // Create test database if it doesn't exist
-    // This would typically be handled by test setup scripts
-  });
-
   beforeEach(async () => {
-    repository = new PostgresPromptRepository(TEST_CONFIG);
-    await repository.connect();
+    repository = testDbManager.getRepository();
     
     // Clean up test data
-    await cleanupTestData();
+    await testDbManager.cleanupTestData();
   });
 
   afterEach(async () => {
-    await cleanupTestData();
-    await repository.disconnect();
+    await testDbManager.cleanupTestData();
   });
 
-  afterAll(async () => {
-    // Clean up test database
-  });
 
-  async function cleanupTestData() {
-    try {
-      const client = (repository as any).client;
-      await client`DELETE FROM prompt_versions`;
-      await client`DELETE FROM prompt_tags`;
-      await client`DELETE FROM prompt_variables`;
-      await client`DELETE FROM prompts`;
-    } catch (error) {
-      // Ignore cleanup errors
-    }
-  }
 
   describe('Connection Management', () => {
     it('should connect to database successfully', async () => {
-      const testRepo = new PostgresPromptRepository(TEST_CONFIG);
+      const testRepo = new PostgresPromptRepository(TEST_DB_CONFIG);
       await expect(testRepo.connect()).resolves.not.toThrow();
       await testRepo.disconnect();
     });
@@ -58,7 +30,7 @@ describe('PostgresPromptRepository', () => {
     it('should handle connection failures', async () => {
       const invalidRepo = new PostgresPromptRepository({
         host: 'invalid-host',
-        port: 5433,
+        port: 5434,
         database: 'invalid_db',
         user: 'invalid_user',
         password: 'invalid_password',
@@ -68,7 +40,7 @@ describe('PostgresPromptRepository', () => {
     });
 
     it('should disconnect gracefully', async () => {
-      const testRepo = new PostgresPromptRepository(TEST_CONFIG);
+      const testRepo = new PostgresPromptRepository(TEST_DB_CONFIG);
       await testRepo.connect();
       await expect(testRepo.disconnect()).resolves.not.toThrow();
     });
