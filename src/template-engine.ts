@@ -53,21 +53,7 @@ export class SimpleTemplateEngine implements TemplateEngine {
     };
   }
 
-  /**
-   * Apply template with validation
-   * Throws error if required variables are missing
-   */
-  applyTemplateWithValidation(content: string, variables: Record<string, string>): string {
-    const validation = this.validateVariables(content, variables);
-    
-    if (!validation.valid) {
-      throw new Error(
-        `Missing required variables: ${validation.missing.join(', ')}`
-      );
-    }
-    
-    return this.applyTemplate(content, variables);
-  }
+
 }
 
 // Default template engine instance

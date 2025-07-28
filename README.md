@@ -18,24 +18,22 @@ The original MCP Prompts project is ambitious but over-engineered. It promises e
 ```
 src/
 ├── types.ts          # Prompt interface and schemas
-├── file-storage.ts   # Atomic file operations with locking
+├── postgres-storage.ts # PostgreSQL storage implementation
 ├── prompt-service.ts # Business logic and validation
 ├── template-engine.ts # Variable substitution engine
 ├── mcp-server.ts     # MCP protocol integration
 └── index.ts          # Entry point and server startup
 
 tests/
-├── file-storage.test.ts
-├── prompt-service.test.ts
-└── template-engine.test.ts
+├── template-engine.test.ts
 ```
 
 ### Key Features
 
-1. **Atomic File Storage**
-   - Temp file + rename for corruption prevention
-   - File locking with `proper-lockfile`
-   - Index.json for fast metadata lookup
+1. **PostgreSQL Storage**
+   - Full database persistence with versioning
+   - Atomic transactions for data integrity
+   - Efficient querying with indexes
 
 2. **Schema Validation**
    - Zod schemas for all data
@@ -103,8 +101,8 @@ npx mcp-prompt-mgmt
 ### Phase 1: Core Foundation ✅ COMPLETED
 - [x] Set up project structure and dependencies
 - [x] Implement `Prompt` interface and Zod schemas
-- [x] Create `FilePromptRepository` with atomic operations
-- [x] Add comprehensive tests for file storage
+- [x] Create `PostgresPromptRepository` with database operations
+- [x] Add comprehensive tests for PostgreSQL storage
 - [x] Basic MCP server integration
 
 ### Phase 2: Features ✅ COMPLETED
@@ -123,11 +121,11 @@ npx mcp-prompt-mgmt
 ## 🧪 Testing Strategy
 
 ### Unit Tests
-- File storage operations (atomic writes, locking)
+- PostgreSQL storage operations (CRUD, versioning)
 - Schema validation with Zod 3.22.4
 - Template variable substitution
 - Error handling
-- Security (path traversal protection)
+- Database transaction safety
 
 ### Integration Tests
 - MCP server communication
@@ -145,19 +143,19 @@ npx mcp-prompt-mgmt
 
 A successful implementation will:
 
-1. **Store prompts safely** - No data corruption, atomic operations with file locking
+1. **Store prompts safely** - No data corruption, atomic database transactions
 2. **Validate everything** - Reject invalid data with clear errors using Zod schemas
 3. **Work with MCP clients** - Claude Desktop, Cursor, etc. via JSON-RPC
 4. **Have comprehensive tests** - Every feature tested (73 tests passing)
 5. **Be simple to understand** - Clear, focused codebase with minimal dependencies
 6. **Be easy to extend** - Well-defined interfaces and modular architecture
-7. **Be secure** - Protected against path traversal attacks and input validation
+7. **Be secure** - Protected against SQL injection and input validation
 
 ## 🔄 Comparison with Original
 
 | Feature | Original MCP Prompts | This Project |
 |---------|---------------------|--------------|
-| **File Storage** | ✅ Working | ✅ Core focus |
+| **PostgreSQL Storage** | ✅ Working | ✅ Core focus |
 | **PostgreSQL** | ❌ Not implemented | ❌ Out of scope |
 | **REST API** | ❌ Not implemented | ❌ Out of scope |
 | **CLI** | ❌ Not implemented | ✅ Simple CLI |
