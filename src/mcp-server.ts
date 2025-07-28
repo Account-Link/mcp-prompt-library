@@ -10,7 +10,7 @@ export class McpPromptServer {
     this.promptService = promptService;
     
     this.server = new McpServer({
-      name: 'mcp-prompt-mgmt',
+      name: 'mcp-prompt-library',
       version: '1.0.0',
     });
 

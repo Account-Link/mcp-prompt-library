@@ -55,7 +55,7 @@ tests/
 ### Installation
 
 ```bash
-cd mcp-prompt-mgmt
+cd mcp-prompt-library
 npm install
 ```
 
@@ -118,7 +118,7 @@ npm run build
 npm start
 
 # Or with npx
-npx mcp-prompt-mgmt
+npx mcp-prompt-library
 ```
 
 ### MCP Development Workflow
@@ -127,7 +127,7 @@ npx mcp-prompt-mgmt
 
 - **For testing**: Use `npm run dev:test` to test MCP communication
 - **For manual testing**: Use `npm run dev` to run the server once
-- **For production**: Use `npm start` or `npx mcp-prompt-mgmt`
+- **For production**: Use `npm start` or `npx mcp-prompt-library`
 
 ## 📋 Implementation Plan
 
@@ -223,9 +223,9 @@ Add to your MCP client configuration:
 ```json
 {
   "mcpServers": {
-    "mcp-prompt-mgmt": {
+    "mcp-prompt-library": {
       "command": "npx",
-      "args": ["mcp-prompt-mgmt"],
+      "args": ["mcp-prompt-library"],
       "env": {
         "PROMPTS_DIR": "./prompts"
       }
@@ -243,7 +243,7 @@ Add to your MCP client configuration:
 ### Setup
 ```bash
 git clone <repository>
-cd mcp-prompt-mgmt
+cd mcp-prompt-library
 npm install
 npm test
 ```
@@ -257,7 +257,3 @@ npm test
 ## 📄 License
 
 MIT License - see LICENSE file for details.
-
----
-
-**Goal**: A prompt manager that actually works, with tests that actually pass, and code that's actually maintainable.
