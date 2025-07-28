@@ -278,6 +278,20 @@ Add to your MCP client configuration:
 }
 ```
 
+#### For Cursor (Docker/HTTP)
+
+For HTTP-based MCP server (Docker deployment):
+
+```json
+{
+  "mcpServers": {
+    "mcp-prompt-library": {
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
 #### For HTTP Clients (Docker)
 
 The containerized server is available at `http://localhost:8080/mcp` and accepts standard MCP JSON-RPC requests.
