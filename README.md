@@ -77,6 +77,8 @@ docker-compose down
 
 The MCP server will be available at `http://localhost:8080/mcp` for HTTP clients.
 
+**Note**: Docker uses a default password (`mcp_password_123`) for PostgreSQL. To use a custom password, create `./secrets/postgres_password.txt` with your desired password and set the `POSTGRES_PASSWORD` environment variable.
+
 ### Option 2: Local Development
 
 For development and testing:
@@ -338,6 +340,7 @@ docker exec mcp-prompt-server ps aux
 1. **Port conflicts**: Ensure ports 8080 and 5433 are available
 2. **Database connection**: Check if PostgreSQL container is healthy
 3. **Build issues**: Rebuild with `docker-compose build --no-cache mcp-server`
+4. **Password issues**: Docker uses default password `mcp_password_123`. To customize, set `POSTGRES_PASSWORD` environment variable
 
 #### Reset Everything
 ```bash
