@@ -10,7 +10,6 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "dev:test": "node test-mcp.js",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",

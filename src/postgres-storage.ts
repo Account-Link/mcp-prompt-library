@@ -1,7 +1,7 @@
 import postgres from 'postgres';
 import type { PromptRepository, CreatePromptArgs, UpdatePromptArgs, ListPromptsArgs, Prompt } from './types.js';
 
-export interface PostgresConfig {
+interface PostgresConfig {
   connectionString?: string;
   host?: string;
   port?: number;

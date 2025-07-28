@@ -37,13 +37,7 @@ export const createPromptSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).nullable().default(null),
 });
 
-// Schema for a complete prompt (including server-generated fields)
-export const promptSchema = createPromptSchema.extend({
-  id: z.string().min(1),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  version: z.number().int().positive(),
-});
+// Note: promptSchema is not currently used but kept for potential future use
 
 // Schema for updating a prompt (all fields optional, no defaults)
 export const updatePromptSchema = z.object({
@@ -68,8 +62,8 @@ export const updatePromptSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
-// Schema for applying template variables
-export const applyTemplateSchema = z.object({
+// Schema for applying template variables (not exported as it's only used for type inference)
+const applyTemplateSchema = z.object({
   id: z.string(),
   variables: z.record(z.string(), z.string()),
 });
@@ -129,12 +123,7 @@ export class NotFoundError extends PromptError {
   }
 }
 
-export class StorageError extends PromptError {
-  constructor(message: string, public originalError?: Error) {
-    super(message, 'STORAGE_ERROR');
-    this.name = 'StorageError';
-  }
-}
+// Note: StorageError is not currently used but kept for potential future use
 
 // Export types for use in other modules
 export type CreatePromptArgs = z.infer<typeof createPromptSchema>;

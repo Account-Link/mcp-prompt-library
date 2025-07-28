@@ -32,12 +32,10 @@ async function main() {
     logger.info('Starting MCP Prompt Manager...');
     
     // Initialize repository based on configuration
-    let repository;
-
     logger.info('Using PostgreSQL storage');
     logger.info(`PostgreSQL config: ${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`);
     
-    repository = new PostgresPromptRepository({
+    const repository = new PostgresPromptRepository({
       host: POSTGRES_HOST,
       port: POSTGRES_PORT,
       database: POSTGRES_DB,

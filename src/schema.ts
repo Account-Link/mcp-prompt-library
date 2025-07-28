@@ -49,6 +49,6 @@ export const promptVariables = pgTable('prompt_variables', {
 });
 
 // Auto-generated Zod schemas for validation (not for type inference)
-export const insertPromptSchema = createInsertSchema(prompts);
+// Note: insertPromptSchema is not currently used but kept for potential future use
 
  
