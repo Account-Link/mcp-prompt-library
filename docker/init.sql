@@ -52,15 +52,7 @@ CREATE TABLE IF NOT EXISTS prompt_tags (
   FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
--- Variables table (for templates)
-CREATE TABLE IF NOT EXISTS prompt_variables (
-  prompt_id VARCHAR(255) NOT NULL,
-  variable_name VARCHAR(100) NOT NULL,
-  variable_order INTEGER NOT NULL,
-  
-  PRIMARY KEY (prompt_id, variable_name),
-  FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE
-);
+
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_prompts_name ON prompts(name);
@@ -83,5 +75,4 @@ CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 CREATE INDEX IF NOT EXISTS idx_prompt_tags_prompt_id ON prompt_tags(prompt_id);
 CREATE INDEX IF NOT EXISTS idx_prompt_tags_tag_id ON prompt_tags(tag_id);
 
--- Index for prompt variables
-CREATE INDEX IF NOT EXISTS idx_prompt_variables_prompt_id ON prompt_variables(prompt_id); 
+ 

@@ -40,12 +40,7 @@ export const promptTags = pgTable('prompt_tags', {
   tagId: integer('tag_id').notNull(),
 });
 
-// Variables table (for templates)
-export const promptVariables = pgTable('prompt_variables', {
-  promptId: text('prompt_id').notNull(),
-  variableName: text('variable_name').notNull(),
-  variableOrder: integer('variable_order').notNull(),
-});
+
 
 // Auto-generated Zod schemas for validation (not for type inference)
 // Note: insertPromptSchema is not currently used but kept for potential future use

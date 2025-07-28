@@ -116,7 +116,7 @@ export class TestDatabaseManager {
       // Clean up in the correct order to respect foreign key constraints
       await client`DELETE FROM prompt_versions`;
       await client`DELETE FROM prompt_tags`;
-      await client`DELETE FROM prompt_variables`;
+  
       await client`DELETE FROM prompts`;
       // Also clean up orphaned tags
       await client`DELETE FROM tags WHERE id NOT IN (SELECT DISTINCT tag_id FROM prompt_tags)`;

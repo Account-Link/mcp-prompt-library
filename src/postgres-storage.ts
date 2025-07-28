@@ -61,10 +61,7 @@ export class PostgresPromptRepository implements PromptRepository {
       await this.saveTags(this.client, prompt.id, data.tags);
     }
 
-    // Handle variables if provided
-    if (data.variables && data.variables.length > 0) {
-      await this.saveVariables(this.client, prompt.id, data.variables);
-    }
+
 
     // Return complete prompt with tags and variables
     const result = await this.getByIdInternal(this.client, prompt.id);
@@ -84,9 +81,8 @@ export class PostgresPromptRepository implements PromptRepository {
       
       if (!result) return null;
 
-      // Get tags and variables for this version
+      // Get tags for this version
       const tags = await this.getTagsForPrompt(id);
-      const variables = await this.getVariablesForPrompt(id);
 
       return {
         id: result.id,
@@ -95,7 +91,6 @@ export class PostgresPromptRepository implements PromptRepository {
         description: result.description,
         isTemplate: result.is_template,
         tags,
-        variables,
         category: result.category,
         metadata: result.metadata ? JSON.parse(result.metadata) : null,
         createdAt: result.created_at,
@@ -115,24 +110,22 @@ export class PostgresPromptRepository implements PromptRepository {
 
     if (!result) return null;
 
-    // Get tags and variables
+    // Get tags
     const tags = await this.getTagsForPrompt(id);
-    const variables = await this.getVariablesForPrompt(id);
 
-    return {
-      id: result.id,
-      name: result.name,
-      content: result.content,
-      description: result.description,
-      isTemplate: result.is_template,
-      tags,
-      variables,
-      category: result.category,
-      metadata: result.metadata ? JSON.parse(result.metadata) : null,
-      createdAt: result.created_at,
-      updatedAt: result.updated_at,
-      version: result.version,
-    };
+          return {
+        id: result.id,
+        name: result.name,
+        content: result.content,
+        description: result.description,
+        isTemplate: result.is_template,
+        tags,
+        category: result.category,
+        metadata: result.metadata ? JSON.parse(result.metadata) : null,
+        createdAt: result.created_at,
+        updatedAt: result.updated_at,
+        version: result.version,
+      };
   }
 
   async list(options?: ListPromptsArgs): Promise<Prompt[]> {
@@ -245,15 +238,7 @@ export class PostgresPromptRepository implements PromptRepository {
       }
     }
 
-    // Handle variables if provided
-    if (data.variables !== undefined) {
-      // Delete existing variables
-      await this.client`DELETE FROM prompt_variables WHERE prompt_id = ${id}`;
-      // Insert new variables
-      if (data.variables.length > 0) {
-        await this.saveVariables(this.client, id, data.variables);
-      }
-    }
+
 
     const result = await this.getByIdInternal(this.client, id);
     if (!result) {
@@ -283,7 +268,7 @@ export class PostgresPromptRepository implements PromptRepository {
       }
       
       await this.client`DELETE FROM prompt_tags WHERE prompt_id = ${id}`;
-      await this.client`DELETE FROM prompt_variables WHERE prompt_id = ${id}`;
+
       await this.client`DELETE FROM prompt_versions WHERE id = ${id}`;
       await this.client`DELETE FROM prompts WHERE id = ${id}`;
       return true;
@@ -339,14 +324,7 @@ export class PostgresPromptRepository implements PromptRepository {
     }
   }
 
-  private async saveVariables(db: postgres.Sql, promptId: string, variables: string[]): Promise<void> {
-    for (let i = 0; i < variables.length; i++) {
-      await db`
-        INSERT INTO prompt_variables (prompt_id, variable_name, variable_order)
-        VALUES (${promptId}, ${variables[i]}, ${i})
-      `;
-    }
-  }
+
 
   private async getTagsForPrompt(promptId: string): Promise<string[]> {
     const results = await this.client`
@@ -359,23 +337,13 @@ export class PostgresPromptRepository implements PromptRepository {
     return results.map(r => r.name);
   }
 
-  private async getVariablesForPrompt(promptId: string): Promise<string[]> {
-    const results = await this.client`
-      SELECT variable_name 
-      FROM prompt_variables 
-      WHERE prompt_id = ${promptId} 
-      ORDER BY variable_order
-    `;
 
-    return results.map(r => r.variable_name);
-  }
 
   private async loadPromptsWithRelations(results: any[]): Promise<Prompt[]> {
-    // Load tags and variables for all prompts
+    // Load tags for all prompts
     const promptsWithRelations = await Promise.all(
       results.map(async (prompt) => {
         const tags = await this.getTagsForPrompt(prompt.id);
-        const variables = await this.getVariablesForPrompt(prompt.id);
 
         return {
           id: prompt.id,
@@ -384,7 +352,6 @@ export class PostgresPromptRepository implements PromptRepository {
           description: prompt.description,
           isTemplate: prompt.is_template,
           tags,
-          variables,
           category: prompt.category,
           metadata: prompt.metadata ? JSON.parse(prompt.metadata) : null,
           createdAt: prompt.created_at,

@@ -7,7 +7,7 @@ export interface Prompt {
   content: string;
   description: string | null;
   isTemplate: boolean;
-  variables: string[];
+
   tags: string[];
   category: string | null;
   metadata: Record<string, unknown> | null;
@@ -31,7 +31,7 @@ export const createPromptSchema = z.object({
     .nullable()
     .default(null),
   isTemplate: z.boolean().default(false),
-  variables: z.array(z.string()).default([]),
+
   tags: z.array(z.string().min(1)).default([]),
   category: z.string().nullable().default(null),
   metadata: z.record(z.string(), z.unknown()).nullable().default(null),
@@ -56,7 +56,7 @@ export const updatePromptSchema = z.object({
     .nullable()
     .optional(),
   isTemplate: z.boolean().optional(),
-  variables: z.array(z.string()).optional(),
+
   tags: z.array(z.string().min(1)).optional(),
   category: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),

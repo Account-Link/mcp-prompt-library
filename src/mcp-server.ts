@@ -44,7 +44,6 @@ export class McpPromptServer {
             isTemplate,
             tags,
             category,
-            variables: [],
             metadata: null,
           });
 
