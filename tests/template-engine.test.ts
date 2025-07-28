@@ -200,26 +200,22 @@ describe('SimpleTemplateEngine', () => {
 
   describe('Real-world Scenarios', () => {
     it('should handle email template', () => {
-      const template = `
-Dear {{recipient_name}},
-
-Thank you for your order #{{order_id}}. Your total is ${{total}}.
-
-Your items:
-{{#items}}
-- {{name}}: ${{price}}
-{{/items}}
-
-Best regards,
-{{company_name}}
-      `;
+      const template = 
+'Dear {{recipient_name}},\n\n' +
+'Thank you for your order #{{order_id}}. Your total is ${{total}}.\n\n' +
+'Your items:\n' +
+'- {{item1_name}}: ${{item1_price}}\n' +
+'- {{item2_name}}: ${{item2_price}}\n\n' +
+'Best regards,\n' +
+'{{company_name}}';
       const variables = {
         recipient_name: 'John Doe',
         order_id: '12345',
         total: '99.99',
-        '#items': '',
-        name: 'Product 1',
-        price: '49.99',
+        item1_name: 'Product 1',
+        item1_price: '49.99',
+        item2_name: 'Product 2',
+        item2_price: '49.99',
         company_name: 'Our Store'
       };
       const result = engine.applyTemplate(template, variables);

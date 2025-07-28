@@ -167,10 +167,12 @@ export class PostgresPromptRepository implements PromptRepository {
 
     if (conditions.length > 0) {
       const whereClause = conditions.join(' AND ');
-      const results = await this.client`SELECT * FROM prompts WHERE ${this.client.unsafe(whereClause)} ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}`;
+      const query = `SELECT * FROM prompts WHERE ${whereClause} ORDER BY updated_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      params.push(Number(limit), Number(offset));
+      const results = await this.client.unsafe(query, params);
       return await this.loadPromptsWithRelations(results);
     } else {
-      const results = await this.client`SELECT * FROM prompts ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}`;
+      const results = await this.client`SELECT * FROM prompts ORDER BY updated_at DESC LIMIT ${Number(limit)} OFFSET ${Number(offset)}`;
       return await this.loadPromptsWithRelations(results);
     }
   }
@@ -187,48 +189,45 @@ export class PostgresPromptRepository implements PromptRepository {
       throw new Error(`Prompt with id ${id} not found`);
     }
 
-    // Prepare update data
-    const updateFields = [];
-    const updateValues = [];
-    let paramIndex = 1;
+    // Build update query with proper parameter binding
+    const updateParts = [];
+    const updateParams = [];
 
     if (data.name !== undefined) {
-      updateFields.push(`name = $${paramIndex++}`);
-      updateValues.push(data.name);
+      updateParts.push(`name = $${updateParams.length + 1}`);
+      updateParams.push(data.name);
     }
     if (data.content !== undefined) {
-      updateFields.push(`content = $${paramIndex++}`);
-      updateValues.push(data.content);
+      updateParts.push(`content = $${updateParams.length + 1}`);
+      updateParams.push(data.content);
     }
     if (data.description !== undefined) {
-      updateFields.push(`description = $${paramIndex++}`);
-      updateValues.push(data.description);
+      updateParts.push(`description = $${updateParams.length + 1}`);
+      updateParams.push(data.description);
     }
     if (data.isTemplate !== undefined) {
-      updateFields.push(`is_template = $${paramIndex++}`);
-      updateValues.push(data.isTemplate);
+      updateParts.push(`is_template = $${updateParams.length + 1}`);
+      updateParams.push(data.isTemplate);
     }
     if (data.category !== undefined) {
-      updateFields.push(`category = $${paramIndex++}`);
-      updateValues.push(data.category);
+      updateParts.push(`category = $${updateParams.length + 1}`);
+      updateParams.push(data.category);
     }
     if (data.metadata !== undefined) {
-      updateFields.push(`metadata = $${paramIndex++}`);
-      updateValues.push(data.metadata);
+      updateParts.push(`metadata = $${updateParams.length + 1}`);
+      updateParams.push(data.metadata);
     }
 
-    updateFields.push(`updated_at = $${paramIndex++}`);
-    updateValues.push(now);
-    updateFields.push(`version = $${paramIndex++}`);
-    updateValues.push(current.version + 1);
+    updateParts.push(`updated_at = $${updateParams.length + 1}`);
+    updateParams.push(now);
+    updateParts.push(`version = $${updateParams.length + 1}`);
+    updateParams.push(current.version + 1);
 
-    // Update main prompt
-    const [updated] = await this.client`
-      UPDATE prompts 
-      SET ${this.client.unsafe(updateFields.join(', '))}
-      WHERE id = ${id}
-      RETURNING *
-    `;
+    // Update main prompt with proper parameter binding
+    const updateQuery = `UPDATE prompts SET ${updateParts.join(', ')} WHERE id = $${updateParams.length + 1} RETURNING *`;
+    updateParams.push(id);
+    
+    const [updated] = await this.client.unsafe(updateQuery, updateParams);
 
     // Save version record
     await this.client`
@@ -269,10 +268,20 @@ export class PostgresPromptRepository implements PromptRepository {
       const result = await this.client`
         DELETE FROM prompt_versions 
         WHERE id = ${id} AND version = ${version}
+        RETURNING id
       `;
       return result.length > 0;
     } else {
       // Delete all versions and related data
+      // Check if prompt exists first
+      const [existing] = await this.client`
+        SELECT id FROM prompts WHERE id = ${id}
+      `;
+      
+      if (!existing) {
+        return false;
+      }
+      
       await this.client`DELETE FROM prompt_tags WHERE prompt_id = ${id}`;
       await this.client`DELETE FROM prompt_variables WHERE prompt_id = ${id}`;
       await this.client`DELETE FROM prompt_versions WHERE id = ${id}`;
@@ -285,7 +294,7 @@ export class PostgresPromptRepository implements PromptRepository {
     const results = await this.client`
       SELECT version FROM prompt_versions 
       WHERE id = ${id} 
-      ORDER BY version DESC
+      ORDER BY version ASC
     `;
 
     return results.map(result => result.version);

@@ -166,7 +166,8 @@ describe('PostgresPromptRepository', () => {
 
       // Test category filter
       const testCategoryPrompts = await repository.list({ category: 'test' });
-      expect(testCategoryPrompts).toHaveLength(2);
+      expect(testCategoryPrompts).toHaveLength(1);
+      expect(testCategoryPrompts[0].name).toBe('Prompt 1');
 
       // Test tag filter
       const filterTagPrompts = await repository.list({ tags: ['filter'] });

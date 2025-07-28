@@ -3,14 +3,15 @@ import { TemplateEngine } from './types.js';
 export class SimpleTemplateEngine implements TemplateEngine {
   /**
    * Apply variables to a template string
-   * Supports {{variable}} syntax
+   * Supports {{variable}} syntax with dots, hyphens, spaces, etc.
    */
   applyTemplate(content: string, variables: Record<string, string>): string {
-    return content.replace(/\{\{(\w+)\}\}/g, (_match, variableName) => {
-      if (variables[variableName] === undefined) {
-        throw new Error(`Missing required variable: ${variableName}`);
+    return content.replace(/\{\{([^}]+)\}\}/g, (_match, variableName) => {
+      const trimmedName = variableName.trim();
+      if (variables[trimmedName] === undefined) {
+        throw new Error(`Missing required variable: ${trimmedName}`);
       }
-      return variables[variableName];
+      return variables[trimmedName];
     });
   }
 
@@ -19,12 +20,12 @@ export class SimpleTemplateEngine implements TemplateEngine {
    * Returns array of variable names found in {{variable}} syntax
    */
   extractVariables(content: string): string[] {
-    const matches = content.match(/\{\{(\w+)\}\}/g);
+    const matches = content.match(/\{\{([^}]+)\}\}/g);
     if (!matches) return [];
     
     const variables = new Set<string>();
     for (const match of matches) {
-      const variableName = match.slice(2, -2); // Remove {{ and }}
+      const variableName = match.slice(2, -2).trim(); // Remove {{ and }} and trim whitespace
       variables.add(variableName);
     }
     
