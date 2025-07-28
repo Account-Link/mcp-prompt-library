@@ -1,174 +1,268 @@
 import { describe, it, expect } from 'vitest';
-import { SimpleTemplateEngine } from '../src/template-engine.js';
+import { TemplateEngine } from '../src/template-engine.js';
 
-describe('SimpleTemplateEngine', () => {
-  const engine = new SimpleTemplateEngine();
+describe('TemplateEngine', () => {
+  const engine = new TemplateEngine();
 
-  describe('applyTemplate', () => {
-    it('should substitute variables correctly', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const variables = { name: 'Alice', place: 'Wonderland' };
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Hello Alice, welcome to Wonderland!');
-    });
-
-    it('should handle multiple occurrences of the same variable', () => {
-      const content = '{{name}} says hello to {{name}}!';
-      const variables = { name: 'Bob' };
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Bob says hello to Bob!');
-    });
-
-    it('should leave content unchanged when no variables', () => {
-      const content = 'Hello, world!';
-      const variables = {};
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Hello, world!');
-    });
-
-    it('should throw error for missing variables', () => {
-      const content = 'Hello {{name}}!';
-      const variables = {};
-      
-      expect(() => engine.applyTemplate(content, variables))
-        .toThrow('Missing required variable: name');
+  describe('Basic Variable Substitution', () => {
+    it('should substitute simple variables', () => {
+      const template = 'Hello {{name}}, welcome to {{platform}}!';
+      const variables = { name: 'John', platform: 'our platform' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John, welcome to our platform!');
     });
 
     it('should handle empty variables', () => {
-      const content = 'Hello {{name}}!';
+      const template = 'Hello {{name}}!';
       const variables = { name: '' };
-      
-      const result = engine.applyTemplate(content, variables);
+      const result = engine.apply(template, variables);
       expect(result).toBe('Hello !');
     });
 
-    it('should handle special characters in variables', () => {
-      const content = 'Message: {{message}}';
-      const variables = { message: 'Hello\nWorld\tWith\tTabs' };
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Message: Hello\nWorld\tWith\tTabs');
+    it('should handle missing variables', () => {
+      const template = 'Hello {{name}}, your email is {{email}}';
+      const variables = { name: 'John' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John, your email is {{email}}');
+    });
+
+    it('should handle no variables', () => {
+      const template = 'Hello {{name}}!';
+      const variables = {};
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello {{name}}!');
     });
   });
 
-  describe('extractVariables', () => {
-    it('should extract all variables from content', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}! Your age is {{age}}.';
-      
-      const variables = engine.extractVariables(content);
-      expect(variables).toEqual(['name', 'place', 'age']);
+  describe('Complex Variable Substitution', () => {
+    it('should handle nested object properties', () => {
+      const template = 'Hello {{user.name}}, your role is {{user.role}}';
+      const variables = { 
+        user: { 
+          name: 'John', 
+          role: 'admin' 
+        } 
+      };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John, your role is admin');
     });
 
-    it('should handle duplicate variables', () => {
-      const content = '{{name}} says hello to {{name}}!';
-      
-      const variables = engine.extractVariables(content);
-      expect(variables).toEqual(['name']);
+    it('should handle array access', () => {
+      const template = 'First item: {{items.0}}, Second item: {{items.1}}';
+      const variables = { items: ['apple', 'banana', 'cherry'] };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('First item: apple, Second item: banana');
     });
 
-    it('should return empty array for content without variables', () => {
-      const content = 'Hello, world!';
-      
-      const variables = engine.extractVariables(content);
-      expect(variables).toEqual([]);
-    });
-
-    it('should handle variables with underscores and numbers', () => {
-      const content = '{{user_name}} and {{item_123}}';
-      
-      const variables = engine.extractVariables(content);
-      expect(variables).toEqual(['user_name', 'item_123']);
-    });
-
-    it('should ignore malformed variable syntax', () => {
-      const content = '{{name}} {{} {{invalid}} {{name}}';
-      
-      const variables = engine.extractVariables(content);
-      expect(variables).toEqual(['name', 'invalid']);
+    it('should handle mixed nested structures', () => {
+      const template = 'User {{users.0.name}} has {{users.0.permissions.length}} permissions';
+      const variables = { 
+        users: [{ 
+          name: 'John', 
+          permissions: ['read', 'write'] 
+        }] 
+      };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('User John has 2 permissions');
     });
   });
 
-  describe('validateVariables', () => {
-    it('should return valid when all required variables are provided', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const providedVariables = { name: 'Alice', place: 'Wonderland' };
-      
-      const result = engine.validateVariables(content, providedVariables);
-      expect(result.valid).toBe(true);
-      expect(result.missing).toEqual([]);
-      expect(result.extra).toEqual([]);
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle malformed template syntax', () => {
+      const template = 'Hello {{name}, welcome to {{platform}}!';
+      const variables = { name: 'John', platform: 'our platform' };
+      const result = engine.apply(template, variables);
+      // Should handle gracefully - leave malformed parts unchanged
+      expect(result).toBe('Hello {{name}, welcome to our platform!');
     });
 
-    it('should detect missing variables', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const providedVariables = { name: 'Alice' };
-      
-      const result = engine.validateVariables(content, providedVariables);
-      expect(result.valid).toBe(false);
-      expect(result.missing).toEqual(['place']);
-      expect(result.extra).toEqual([]);
+    it('should handle nested variable substitution', () => {
+      const template = 'Hello {{name}}, your template is: {{template}}';
+      const variables = { 
+        name: 'John', 
+        template: 'Welcome {{user}} to {{platform}}' 
+      };
+      const result = engine.apply(template, variables);
+      // Should not recursively substitute - just use the literal template string
+      expect(result).toBe('Hello John, your template is: Welcome {{user}} to {{platform}}');
     });
 
-    it('should detect extra variables', () => {
-      const content = 'Hello {{name}}!';
-      const providedVariables = { name: 'Alice', extra: 'value' };
-      
-      const result = engine.validateVariables(content, providedVariables);
-      expect(result.valid).toBe(true);
-      expect(result.missing).toEqual([]);
-      expect(result.extra).toEqual(['extra']);
+    it('should handle circular references gracefully', () => {
+      const template = 'Value: {{value}}';
+      const variables = { value: '{{value}}' }; // Circular reference
+      const result = engine.apply(template, variables);
+      // Should handle gracefully without infinite loops
+      expect(result).toBe('Value: {{value}}');
     });
 
-    it('should handle both missing and extra variables', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const providedVariables = { name: 'Alice', extra: 'value' };
-      
-      const result = engine.validateVariables(content, providedVariables);
-      expect(result.valid).toBe(false);
-      expect(result.missing).toEqual(['place']);
-      expect(result.extra).toEqual(['extra']);
+    it('should handle very long variable names', () => {
+      const longName = 'a'.repeat(1000);
+      const template = `Hello {{${longName}}}!`;
+      const variables = { [longName]: 'World' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello World!');
     });
 
-    it('should be valid when no variables are required', () => {
-      const content = 'Hello, world!';
-      const providedVariables = { extra: 'value' };
-      
-      const result = engine.validateVariables(content, providedVariables);
-      expect(result.valid).toBe(true);
-      expect(result.missing).toEqual([]);
-      expect(result.extra).toEqual(['extra']);
+    it('should handle very long variable values', () => {
+      const longValue = 'x'.repeat(10000);
+      const template = 'Value: {{value}}';
+      const variables = { value: longValue };
+      const result = engine.apply(template, variables);
+      expect(result).toBe(`Value: ${longValue}`);
+    });
+
+    it('should handle special characters in variable names', () => {
+      const template = 'Hello {{user-name}}, welcome to {{platform_name}}!';
+      const variables = { 'user-name': 'John', 'platform_name': 'our platform' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John, welcome to our platform!');
+    });
+
+    it('should handle special characters in variable values', () => {
+      const template = 'Message: {{message}}';
+      const variables = { message: 'Hello\nWorld\tWith\r\nSpecial\nCharacters' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Message: Hello\nWorld\tWith\r\nSpecial\nCharacters');
+    });
+
+    it('should handle unicode characters', () => {
+      const template = 'Hello {{name}}, 你好 {{greeting}}!';
+      const variables = { name: '世界', greeting: '世界' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello 世界, 你好 世界!');
+    });
+
+    it('should handle emoji characters', () => {
+      const template = 'Hello {{name}} {{emoji}}!';
+      const variables = { name: 'John', emoji: '👋' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John 👋!');
     });
   });
 
-
-
-  describe('edge cases', () => {
-    it('should handle nested braces that are not variables', () => {
-      const content = '{{name}} and {not_a_variable} and {{place}}';
-      const variables = { name: 'Alice', place: 'Wonderland' };
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Alice and {not_a_variable} and Wonderland');
+  describe('Template Validation', () => {
+    it('should handle empty template', () => {
+      const template = '';
+      const variables = { name: 'John' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('');
     });
 
-    it('should handle variables with spaces (should not match)', () => {
-      const content = 'Hello {{ name }}!'; // Note the spaces
-      const variables = { name: 'Alice' };
-      
-      // This should not match due to spaces
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Hello {{ name }}!');
+    it('should handle template with only variables', () => {
+      const template = '{{name}}{{age}}{{city}}';
+      const variables = { name: 'John', age: '25', city: 'NYC' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('John25NYC');
     });
 
-    it('should handle case-sensitive variable names', () => {
-      const content = 'Hello {{Name}} and {{name}}!';
-      const variables = { Name: 'Alice', name: 'Bob' };
-      
-      const result = engine.applyTemplate(content, variables);
-      expect(result).toBe('Hello Alice and Bob!');
+    it('should handle template with only literal text', () => {
+      const template = 'Hello World!';
+      const variables = { name: 'John' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello World!');
+    });
+
+    it('should handle template with whitespace around variables', () => {
+      const template = 'Hello {{ name }}, welcome to {{ platform }}!';
+      const variables = { name: 'John', platform: 'our platform' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('Hello John, welcome to our platform!');
+    });
+
+    it('should handle template with multiple consecutive variables', () => {
+      const template = '{{first}}{{second}}{{third}}';
+      const variables = { first: '1', second: '2', third: '3' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('123');
+    });
+  });
+
+  describe('Performance and Scalability', () => {
+    it('should handle large number of variables efficiently', () => {
+      const template = '{{v1}}{{v2}}{{v3}}{{v4}}{{v5}}{{v6}}{{v7}}{{v8}}{{v9}}{{v10}}';
+      const variables = {
+        v1: '1', v2: '2', v3: '3', v4: '4', v5: '5',
+        v6: '6', v7: '7', v8: '8', v9: '9', v10: '10'
+      };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('12345678910');
+    });
+
+    it('should handle large template efficiently', () => {
+      const largeText = 'x'.repeat(1000);
+      const template = `${largeText}{{name}}${largeText}`;
+      const variables = { name: 'John' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe(`${largeText}John${largeText}`);
+    });
+
+    it('should handle many variable substitutions efficiently', () => {
+      const template = '{{name}} {{name}} {{name}} {{name}} {{name}}';
+      const variables = { name: 'John' };
+      const result = engine.apply(template, variables);
+      expect(result).toBe('John John John John John');
+    });
+  });
+
+  describe('Real-world Scenarios', () => {
+    it('should handle email template', () => {
+      const template = `
+Dear {{recipient_name}},
+
+Thank you for your order #{{order_id}}. Your total is ${{total}}.
+
+Your items:
+{{#items}}
+- {{name}}: ${{price}}
+{{/items}}
+
+Best regards,
+{{company_name}}
+      `;
+      const variables = {
+        recipient_name: 'John Doe',
+        order_id: '12345',
+        total: '99.99',
+        items: [
+          { name: 'Product 1', price: '49.99' },
+          { name: 'Product 2', price: '50.00' }
+        ],
+        company_name: 'Our Store'
+      };
+      const result = engine.apply(template, variables);
+      expect(result).toContain('Dear John Doe');
+      expect(result).toContain('order #12345');
+      expect(result).toContain('$99.99');
+      expect(result).toContain('Our Store');
+    });
+
+    it('should handle configuration template', () => {
+      const template = `
+{
+  "database": {
+    "host": "{{db_host}}",
+    "port": {{db_port}},
+    "name": "{{db_name}}"
+  },
+  "api": {
+    "baseUrl": "{{api_url}}",
+    "timeout": {{api_timeout}}
+  }
+}
+      `;
+      const variables = {
+        db_host: 'localhost',
+        db_port: '5432',
+        db_name: 'mcp_prompts',
+        api_url: 'https://api.example.com',
+        api_timeout: '30000'
+      };
+      const result = engine.apply(template, variables);
+      expect(result).toContain('"host": "localhost"');
+      expect(result).toContain('"port": 5432');
+      expect(result).toContain('"name": "mcp_prompts"');
+      expect(result).toContain('"baseUrl": "https://api.example.com"');
+      expect(result).toContain('"timeout": 30000');
     });
   });
 }); 
