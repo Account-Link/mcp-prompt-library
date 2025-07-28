@@ -23,13 +23,8 @@ export class TestDatabaseManager {
         throw new Error('Main database container is not running. Please start it with: docker-compose up -d postgres');
       }
       
-      // Create test database (ignore if it already exists)
-      try {
-        await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "CREATE DATABASE mcp_prompts_test;"`);
-      } catch (error) {
-        // Database might already exist, that's fine
-        console.log('Test database already exists, continuing...');
-      }
+      // Create test database with retry logic for concurrent access
+      await this.createTestDatabaseWithRetry();
       
       // Copy the same init.sql file to container and run it on test database
       await execAsync(`docker cp docker/init.sql mcp-prompt-postgres:/tmp/init.sql`);
@@ -51,12 +46,41 @@ export class TestDatabaseManager {
       await this.disconnect();
       
       console.log('Cleaning up test database...');
-      // Drop the test database
-      await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "DROP DATABASE IF EXISTS mcp_prompts_test;"`);
+      // Drop the test database with retry logic for concurrent access
+      await this.dropTestDatabaseWithRetry();
       console.log('Test database cleanup completed');
     } catch (error) {
       console.error('Failed to cleanup test database:', error);
       // Don't throw error for cleanup failures
+    }
+  }
+
+  private async dropTestDatabaseWithRetry(): Promise<void> {
+    const maxAttempts = 5;
+    const delay = 1000; // 1 second
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // First, terminate all connections to the test database
+        await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'mcp_prompts_test' AND pid <> pg_backend_pid();"`);
+        
+        // Then drop the database
+        await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "DROP DATABASE IF EXISTS mcp_prompts_test;"`);
+        return; // Success
+      } catch (error: any) {
+        if (attempt === maxAttempts) {
+          throw error; // Give up after max attempts
+        }
+        
+        // If it's a "database is being accessed" error, wait and retry
+        if (error.stderr && error.stderr.includes('is being accessed by other users')) {
+          console.log(`Database cleanup attempt ${attempt} failed, retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // For other errors, don't retry
+          throw error;
+        }
+      }
     }
   }
 
@@ -122,6 +146,39 @@ export class TestDatabaseManager {
         if (attempt === maxAttempts) {
           throw new Error(`Test database failed to be ready after ${maxAttempts} attempts`);
         }
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  private async createTestDatabaseWithRetry(): Promise<void> {
+    const maxAttempts = 3;
+    const delay = 500; // 0.5 seconds
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts -c "CREATE DATABASE mcp_prompts_test;"`);
+        return; // Success
+      } catch (error: any) {
+        if (attempt === maxAttempts) {
+          // On final attempt, check if database already exists
+          try {
+            await execAsync(`docker exec mcp-prompt-postgres psql -U mcp_user -d mcp_prompts_test -c "SELECT 1;"`);
+            console.log('Test database already exists, continuing...');
+            return; // Database exists, that's fine
+          } catch (checkError) {
+            throw error; // Database doesn't exist and we couldn't create it
+          }
+        }
+        
+        // If it's a "database already exists" error, that's fine
+        if (error.stderr && error.stderr.includes('already exists')) {
+          console.log('Test database already exists, continuing...');
+          return;
+        }
+        
+        // For other errors, wait and retry
+        console.log(`Database creation attempt ${attempt} failed, retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
