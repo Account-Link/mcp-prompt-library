@@ -45,6 +45,7 @@ export class McpPromptServer {
             tags,
             category,
             variables: [],
+            metadata: null,
           });
 
           return {

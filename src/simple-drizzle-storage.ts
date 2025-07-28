@@ -94,7 +94,11 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
       }
 
       // Return complete prompt with tags and variables
-      return await this.getByIdInternal(tx, prompt.id);
+      const result = await this.getByIdInternal(tx, prompt.id);
+      if (!result) {
+        throw new Error('Failed to create prompt');
+      }
+      return result;
     });
   }
 
@@ -117,12 +121,12 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
         id: result.id,
         name: result.name,
         content: result.content,
-        description: result.description || undefined,
+        description: result.description || null,
         isTemplate: result.isTemplate,
         tags,
         variables,
-        category: result.category || undefined,
-        metadata: result.metadata || undefined,
+        category: result.category || null,
+        metadata: (result.metadata as Record<string, unknown>) || null,
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
         version: result.version,
@@ -194,11 +198,11 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
     // Apply pagination
-    query = query.limit(limit).offset(offset).orderBy(desc(prompts.updatedAt));
+    query = (query.limit(limit).offset(offset).orderBy(desc(prompts.updatedAt))) as any;
 
     const results = await query;
 
@@ -212,12 +216,12 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
           id: prompt.id,
           name: prompt.name,
           content: prompt.content,
-          description: prompt.description || undefined,
+          description: prompt.description || null,
           isTemplate: prompt.isTemplate,
           tags,
           variables,
-          category: prompt.category || undefined,
-          metadata: prompt.metadata || undefined,
+          category: prompt.category || null,
+          metadata: (prompt.metadata as Record<string, unknown>) || null,
           createdAt: prompt.createdAt,
           updatedAt: prompt.updatedAt,
           version: prompt.version,
@@ -232,6 +236,10 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
     const now = new Date();
     
     return await this.db.transaction(async (tx) => {
+      const existingPrompt = await this.getByIdInternal(tx, id);
+      if (!existingPrompt) {
+        throw new Error(`Prompt with id ${id} not found`);
+      }
       // Get current prompt
       const [current] = await tx
         .select()
@@ -291,7 +299,11 @@ export class SimpleDrizzlePromptRepository implements PromptRepository {
         }
       }
 
-      return await this.getByIdInternal(tx, id);
+      const updatedPrompt = await this.getByIdInternal(tx, id);
+      if (!updatedPrompt) {
+        throw new Error('Failed to update prompt');
+      }
+      return updatedPrompt;
     });
   }
 

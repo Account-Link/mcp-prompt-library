@@ -204,10 +204,10 @@ export class DrizzlePromptRepository implements PromptRepository {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
 
-    query = query.limit(limit).offset(offset).orderBy(desc(prompts.updatedAt));
+    query = (query.limit(limit).offset(offset).orderBy(desc(prompts.updatedAt))) as any;
     const results = await query;
 
     // Load tags and variables for all prompts
@@ -302,7 +302,11 @@ export class DrizzlePromptRepository implements PromptRepository {
         }
       }
 
-      return await this.getByIdInternal(tx, id);
+      const result = await this.getByIdInternal(tx as any, id);
+      if (!result) {
+        throw new Error('Failed to update prompt');
+      }
+      return result;
     });
   }
 
