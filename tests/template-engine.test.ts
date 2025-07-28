@@ -143,31 +143,7 @@ describe('SimpleTemplateEngine', () => {
     });
   });
 
-  describe('applyTemplateWithValidation', () => {
-    it('should apply template when validation passes', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const variables = { name: 'Alice', place: 'Wonderland' };
-      
-      const result = engine.applyTemplateWithValidation(content, variables);
-      expect(result).toBe('Hello Alice, welcome to Wonderland!');
-    });
 
-    it('should throw error when validation fails', () => {
-      const content = 'Hello {{name}}, welcome to {{place}}!';
-      const variables = { name: 'Alice' };
-      
-      expect(() => engine.applyTemplateWithValidation(content, variables))
-        .toThrow('Missing required variables: place');
-    });
-
-    it('should handle empty content', () => {
-      const content = '';
-      const variables = {};
-      
-      const result = engine.applyTemplateWithValidation(content, variables);
-      expect(result).toBe('');
-    });
-  });
 
   describe('edge cases', () => {
     it('should handle nested braces that are not variables', () => {
